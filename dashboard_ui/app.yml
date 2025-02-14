@@ -2,7 +2,7 @@ version: '2'
 
 services:
         app:
-                image: grafana/grafana-oss:9.4.7
+                image: grafana/grafana-oss:10.4.0
                 user: $CURRENT_UID
                 ports:
                     - '3000:3000'
@@ -10,6 +10,7 @@ services:
                     - './data:/var/lib/grafana/data'
                     - './config/dashboards:/var/lib/grafana/dashboards'  
                     - './config/provisioning:/var/lib/grafana/provisioning'  
+                    - './config/plugins:/var/lib/grafana/plugins'
                     - './config/grafana.ini:/var/lib/grafana/grafana.ini'  
                 environment:
                     - GF_PATHS_CONFIG=/var/lib/grafana/grafana.ini

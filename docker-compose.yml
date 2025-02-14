@@ -1,10 +1,9 @@
-version: '2'
 
 services:
     stoppage-dc:
         extends:
-            file: stoppage_dc/app.yml
-            service: app
+            file: user_input/app.yml
+            service: dev
         networks:
             internal:
                 aliases:
@@ -15,37 +14,53 @@ services:
                         tag: docker-stoppage-dc
         restart: unless-stopped
         depends_on:
-            - "timeseries-db"
-            - "reasons-sds"
-    reasons-sds:
+            - "data-storage"
+    # reasons-sds:
+    #     extends:
+    #         file: reasons_sds/app.yml
+    #         service: app
+    #     networks:
+    #         internal:
+    #             aliases:
+    #                 - reasons-sds.docker.local
+    #     logging:
+    #             driver: syslog
+    #             options:
+    #                     tag: docker-reasons-sds
+    #     restart: unless-stopped
+    #     env_file:
+    #         - django_secret_key 
+
+    data-storage:
         extends:
-            file: reasons_sds/app.yml
+            file: data_storage/app.yml
             service: app
         networks:
             internal:
                 aliases:
-                    - reasons-sds.docker.local
+                    - data-storage.docker.local
         logging:
                 driver: syslog
                 options:
-                        tag: docker-reasons-sds
+                        tag: docker-data-storage
         restart: unless-stopped
         env_file:
             - django_secret_key 
+            - default_password
 
-    reason-events:
-        extends:
-            file: auto_reason_control_sm/app.yml
-            service: app
-        networks:
-            internal:
-                aliases:
-                    - reason-events.docker.local
-        logging:
-                driver: syslog
-                options:
-                        tag: docker-reason-events
-        restart: unless-stopped
+    # reason-events:
+    #     extends:
+    #         file: auto_reason_control_sm/app.yml
+    #         service: app
+    #     networks:
+    #         internal:
+    #             aliases:
+    #                 - reason-events.docker.local
+    #     logging:
+    #             driver: syslog
+    #             options:
+    #                     tag: docker-reason-events
+    #     restart: unless-stopped
  
     timeseries-db:
         extends:
@@ -62,22 +77,22 @@ services:
         restart: unless-stopped
         depends_on:
             - "mqtt_broker"
-    timeseries-db-input:
-        extends:
-            file: timeseries_sds/app.yml
-            service: telegraf
-        networks:
-            internal:
-                aliases:
-                    - timeseries-input.docker.local
-        logging:
-            driver: syslog
-            options:
-                tag: docker-timeseries-input
-        restart: unless-stopped
-        depends_on:
-            - "timeseries-db"
-            - "mqtt_broker"
+    # timeseries-db-input:
+    #     extends:
+    #         file: timeseries_sds/app.yml
+    #         service: telegraf
+    #     networks:
+    #         internal:
+    #             aliases:
+    #                 - timeseries-input.docker.local
+    #     logging:
+    #         driver: syslog
+    #         options:
+    #             tag: docker-timeseries-input
+    #     restart: unless-stopped
+    #     depends_on:
+    #         - "timeseries-db"
+    #         - "mqtt_broker"
     mqtt_broker:
         extends:
             file: mqtt_broker/app.yml
@@ -105,7 +120,7 @@ services:
                         tag: docker-dashboard-ui
         restart: unless-stopped
         depends_on:
-            - "mqtt_broker"
+            - "data-storage"
 networks:
     internal:
       name: shoestring-internal
