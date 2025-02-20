@@ -18,3 +18,20 @@ code {
   bottom: 5px;
   translate: 0%;
 }
+
+.blink {
+  animation: blinkText 1s infinite both linear;
+}
+
+@keyframes blinkText {
+
+  0%,
+  25% {
+    color: black;
+  }
+
+  75%,
+  100% {
+    color: transparent;
+  }
+}

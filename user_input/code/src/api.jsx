@@ -40,16 +40,25 @@ export function useMachineStatus(config, machine_id) {
     return useQuery(
         {
             queryKey: ['status', { id: machine_id }],
-            queryFn: async () => APIBackend.api_get('http://' + get_url(config) + '/state/for/' + machine_id).then(({payload}) => payload),
+            queryFn: async () => APIBackend.api_get('http://' + get_url(config) + '/state/' + machine_id).then(({ payload }) => payload[0]),
         }
     )
 }
 
-export function useMachineStoppages(config, machine_id, page, page_length) {
+export function useMachineStoppages(config, machine_id, page, page_length, duration_filter) {
+    const searchParams = new URLSearchParams();
+
+    searchParams.append("page-length", page_length)
+    searchParams.append("page", page)
+    searchParams.append("running", false)
+    if(duration_filter){
+        searchParams.append("duration", duration_filter)
+    }
+
     return useQuery(
         {
-            queryKey: ['stoppages', { id: machine_id, page: page }],
-            queryFn: async () => APIBackend.api_get('http://' + get_url(config) + '/state/history/for/' + machine_id + "?page-length=" + page_length + "&page=" + page + "&running=false").then(({ payload }) => payload),
+            queryKey: ['stoppages', { id: machine_id, page: page, duration_filter: duration_filter }],
+            queryFn: async () => APIBackend.api_get('http://' + get_url(config) + '/state/history/' + machine_id + "?" + searchParams.toString()).then(({ payload }) => payload),
         }
     )
 }

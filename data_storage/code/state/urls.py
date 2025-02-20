@@ -9,12 +9,13 @@ from . import views
 
 
 urlpatterns = [
-    path("", views.getAll),
-    path("for/<str:machine_id>", views.forMachine),
-    path("history", views.historyFor),
-    path("history/for/<str:machine_id>", views.historyFor),
+    path("", views.snapshot),
+    path("<uuid:machine_id>", views.snapshot),
+    path("history", views.history),
+    path("history/<uuid:machine_id>", views.history),
     path("set_reason/<int:record_id>", views.setReason),
-    path("downtime/<str:machine_id>", views.downtimeForMachine),
+    path("downtime", views.downtime),
+    path("downtime/<uuid:machine_id>", views.downtime)
 ]
 
 # /state/                            ?t=timestamp

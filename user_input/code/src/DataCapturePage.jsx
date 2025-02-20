@@ -1,5 +1,5 @@
 import React from 'react'
-import { Container, Pagination, Card, Col, Row, Button, Modal, Table, Spinner } from 'react-bootstrap'
+import { Container, Pagination, Card, Col, Row, Button, Modal, Table, Spinner, Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { useParams } from 'react-router-dom'
 import { useMQTTControl, useMQTTState } from './MQTTContext';
 import dayjs from 'dayjs'
@@ -15,8 +15,6 @@ export function LivePage({ }) {
   const { sendJsonMessage, subscribe, unsubscribe } = useMQTTControl()
   let params = useParams();
   const machine_id = params.machine_id
-  let { data: reason_set } = useMachineReasons(config, machine_id)
-
 
   let [showModal, setShowModal] = React.useState(false);
   let [subscribed, setSubscribed] = React.useState(false)
@@ -54,7 +52,7 @@ export function LivePage({ }) {
   let machine = machine_list.find(elem => elem.id === machine_id)
 
   const manualSetStatus = async (value) => {
-    let topic = "downtime/event/"+machine_id+"/"+(value?"start":"stop")
+    let topic = "downtime/event/" + machine_id + "/" + (value ? "start" : "stop")
     let payload = { machine: machine_id, running: value, source: "user" }
     try {
       sendJsonMessage(topic, payload);
@@ -90,28 +88,34 @@ export function LivePage({ }) {
         <h1>{machine?.name}</h1>
       </Card.Header>
       <Card.Body>
-        <StatusBar machine_id={machine_id} config={config} manualSetStatus={manualSetStatus}/>
-        <EventLog machine_id={machine_id} config={config} handleEventClick={handleEventClick} reason_set={reason_set} />
+        <StatusBar machine_id={machine_id} config={config} manualSetStatus={manualSetStatus} />
+        <EventLog machine_id={machine_id} config={config} handleEventClick={handleEventClick} />
       </Card.Body>
     </Card>
     <ReasonModal
+      machine_id={machine_id} config={config}
       show={showModal}
       handleReasonClick={handleReasonClick}
       selected_category={selected_category}
       handleCategoryClick={(id) => setSelectedCategory(id)}
-      reason_set={reason_set}
       close={closeModal} />
   </>
 }
 
-function EventLog({ machine_id, config, handleEventClick, reason_set }) {
+function EventLog({ machine_id, config, handleEventClick }) {
   const [page, setPage] = React.useState(1)
   const page_length = 10
-  let { data: stoppages, isLoading } = useMachineStoppages(config, machine_id, page, page_length)
+  const [duration_filter, setDurationFilter] = React.useState("")
 
-  if (isLoading) {
+  let { data: stoppages, isLoading } = useMachineStoppages(config, machine_id, page, page_length, duration_filter)
+  let { data: reason_set, isLoading: reasons_loading } = useMachineReasons(config, machine_id)
+
+
+  if (isLoading || reasons_loading) {
     return <div>Loading...</div>
   }
+
+  let duration_filter_elements = [5, 10, 15, 20, 30, 45, 60].map(step => (<option value={step} key={step}>{step} min</option>))
 
   return <Card className='mt-3 mx-2'>
 
@@ -137,7 +141,17 @@ function EventLog({ machine_id, config, handleEventClick, reason_set }) {
         </Pagination.Item>
       </Pagination>
       <div>Page {page}</div>
-      <div className="my-1 mx-2" />
+      <div className="my-1 mx-1">
+        <OverlayTrigger overlay={<Tooltip>Minimum duration - only shows stops that last longer than this.</Tooltip>}>
+          <InputGroup>
+            <InputGroup.Text>Minimum Duration</InputGroup.Text>
+            <Form.Select value={duration_filter} onChange={(evt) => setDurationFilter(evt.target.value)}>
+              <option value={""}>None</option>
+              {duration_filter_elements}
+            </Form.Select>
+          </InputGroup>
+        </OverlayTrigger>
+      </div>
     </div>
     <Table bordered striped responsive="sm" className='mb-2'>
       <thead>
@@ -183,7 +197,7 @@ function EventLog({ machine_id, config, handleEventClick, reason_set }) {
           return <tr key={index}>
             <td>{start_timestamp}</td>
             <td>{end_timestamp}</td>
-            <td>{event.end ? format_duration(dayjs.duration(dayjs(event.end).diff(dayjs(event.start)))) : ""}</td>
+            <td> <RenderDuration event={event} /></td>
             <td className={final_cell_classes}>{final_cell_content}</td>
           </tr>
         })}
@@ -193,6 +207,32 @@ function EventLog({ machine_id, config, handleEventClick, reason_set }) {
   </Card>
 }
 
+function RenderDuration({ event }) {
+  const [_, setBumpState] = React.useState(true);
+
+  let duration = ""
+  let refresh = undefined
+  if (event?.end) {
+    duration = <div>{format_duration(dayjs.duration(dayjs(event.end).diff(dayjs(event.start))))}</div>
+  } else {
+    let duration_value = dayjs.duration(dayjs().diff(dayjs(event.start)))
+    duration = <div> {format_duration(duration_value)}<i className='blink'>.</i></div>
+    refresh = (duration_value >= dayjs.duration(1, 'minutes')) ? 59000 : 900
+  }
+
+  React.useEffect(() => {
+    if (refresh !== undefined) {
+      const interval = setInterval(() => setBumpState(prev => !prev), refresh);
+      console.log("RAN", refresh)
+      return () => {
+        console.log("Clear")
+        clearInterval(interval);
+      };
+    }
+  }, [refresh]);
+
+  return duration
+}
 
 function format_duration(d) {
   if (d >= dayjs.duration(1, 'days'))
@@ -234,14 +274,22 @@ function StatusBar({ config, machine_id, manualSetStatus }) {
   </Container>
 }
 
-function ReasonModal({ show, handleReasonClick, selected_category, handleCategoryClick, reason_set, close }) {
+function ReasonModal({ config, machine_id, show, handleReasonClick, selected_category, handleCategoryClick, close }) {
+
+  let { data: reason_set, isLoading } = useMachineReasons(config, machine_id)
+
+  if (isLoading) {
+    return <Modal show={show} fullscreen={true}>
+      <Spinner></Spinner>
+    </Modal>
+  }
 
   let category_modal = <> <Modal.Header className='text-center'>
     <Modal.Title className="w-100">Reason Categories <Button variant='light' className='float-end' onClick={() => close()}>Close</Button></Modal.Title>
   </Modal.Header>
     <Modal.Body>
       <Row className='gx-2 gy-2'>
-        {reason_set && Object.keys(reason_set.categories).map(category_id => (
+        {Object.keys(reason_set.categories).map(category_id => (
           <Col xs={12} sm={6} md={4} lg={3} key={category_id} className='d-grid'>
             <Button style={{ backgroundColor: reason_set.categories[category_id].colour, borderColor: 'transparent', color: 'black' }} size='lg' onClick={() => handleCategoryClick(category_id)}>
               {reason_set.categories[category_id].category_name}
