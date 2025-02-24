@@ -1,0 +1,684 @@
+[
+    {
+        "id": "0d9f2814dae387b3",
+        "type": "tab",
+        "label": "Read Config File",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "30145aeb5da7696e",
+        "type": "tab",
+        "label": "MQTT",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "6d5c58c09b2db392",
+        "type": "tab",
+        "label": "App",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "3684319820818ce4",
+        "type": "mqtt-broker",
+        "name": "Downtime MQTT Broker",
+        "broker": "mqtt.docker.local",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "bcff5b042b3394f5",
+        "type": "file in",
+        "z": "0d9f2814dae387b3",
+        "name": "Read Config File",
+        "filename": "filename",
+        "filenameType": "msg",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 350,
+        "y": 80,
+        "wires": [
+            [
+                "c80b8e212d0714a9"
+            ]
+        ]
+    },
+    {
+        "id": "a6b70a86ab5fe5d9",
+        "type": "watch",
+        "z": "0d9f2814dae387b3",
+        "name": "On config update",
+        "files": "/config",
+        "recursive": true,
+        "x": 120,
+        "y": 120,
+        "wires": [
+            [
+                "bcff5b042b3394f5"
+            ]
+        ]
+    },
+    {
+        "id": "c4c544c4bb4b27dd",
+        "type": "inject",
+        "z": "0d9f2814dae387b3",
+        "name": "On start",
+        "props": [
+            {
+                "p": "filename",
+                "v": "CONFIG_FILE",
+                "vt": "env"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 140,
+        "y": 80,
+        "wires": [
+            [
+                "bcff5b042b3394f5"
+            ]
+        ]
+    },
+    {
+        "id": "c80b8e212d0714a9",
+        "type": "json",
+        "z": "0d9f2814dae387b3",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 530,
+        "y": 80,
+        "wires": [
+            [
+                "c0e1b95751ed374a",
+                "147cbaa304191ae0"
+            ]
+        ]
+    },
+    {
+        "id": "c0e1b95751ed374a",
+        "type": "debug",
+        "z": "0d9f2814dae387b3",
+        "name": "Log Config",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 720,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "147cbaa304191ae0",
+        "type": "change",
+        "z": "0d9f2814dae387b3",
+        "name": "Transfer config to global variable",
+        "rules": [
+            {
+                "t": "set",
+                "p": "config",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 770,
+        "y": 120,
+        "wires": [
+            [
+                "2b5b49f7a32da690"
+            ]
+        ]
+    },
+    {
+        "id": "2b5b49f7a32da690",
+        "type": "link out",
+        "z": "0d9f2814dae387b3",
+        "name": "Config Change",
+        "mode": "link",
+        "links": [
+            "a7e7f870c1258bac",
+            "8593ed9e1c605359",
+            "947fb04ffccc10e3"
+        ],
+        "x": 1045,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "c7bb0ead2f87e38e",
+        "type": "mqtt out",
+        "z": "30145aeb5da7696e",
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "3684319820818ce4",
+        "x": 710,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "ac6b80d6dd067739",
+        "type": "mqtt in",
+        "z": "30145aeb5da7696e",
+        "name": "",
+        "topic": "",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "3684319820818ce4",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 1,
+        "x": 750,
+        "y": 240,
+        "wires": [
+            [
+                "17e7f7e579e0f31a",
+                "1f5f4bb6b1efb96c"
+            ]
+        ]
+    },
+    {
+        "id": "def17c0db304d2e7",
+        "type": "change",
+        "z": "30145aeb5da7696e",
+        "name": "Make Subscribe Message",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "subscribe",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "\"power_monitoring/\" & payload.machine & \"/#\"",
+                "tot": "jsonata"
+            },
+            {
+                "t": "set",
+                "p": "qos",
+                "pt": "msg",
+                "to": "1",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 790,
+        "y": 80,
+        "wires": [
+            [
+                "ac6b80d6dd067739",
+                "2f3745b004dae1b2"
+            ]
+        ]
+    },
+    {
+        "id": "a7e7f870c1258bac",
+        "type": "link in",
+        "z": "30145aeb5da7696e",
+        "name": "",
+        "links": [
+            "2b5b49f7a32da690"
+        ],
+        "x": 235,
+        "y": 80,
+        "wires": [
+            [
+                "b6ecb7baf617c406"
+            ]
+        ]
+    },
+    {
+        "id": "2f3745b004dae1b2",
+        "type": "debug",
+        "z": "30145aeb5da7696e",
+        "name": "Subscribing",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1020,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "ddef29380cc12299",
+        "type": "split",
+        "z": "30145aeb5da7696e",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 590,
+        "y": 80,
+        "wires": [
+            [
+                "def17c0db304d2e7"
+            ]
+        ]
+    },
+    {
+        "id": "b6ecb7baf617c406",
+        "type": "change",
+        "z": "30145aeb5da7696e",
+        "name": "Fetch Machine Config",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "config.monitored",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 400,
+        "y": 80,
+        "wires": [
+            [
+                "ddef29380cc12299"
+            ]
+        ]
+    },
+    {
+        "id": "17e7f7e579e0f31a",
+        "type": "debug",
+        "z": "30145aeb5da7696e",
+        "name": "Debug",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "b8449efe0227a112",
+        "type": "debug",
+        "z": "30145aeb5da7696e",
+        "name": "MQTT out",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 730,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "8593ed9e1c605359",
+        "type": "link in",
+        "z": "30145aeb5da7696e",
+        "name": "",
+        "links": [
+            "2b5b49f7a32da690"
+        ],
+        "x": 235,
+        "y": 380,
+        "wires": [
+            [
+                "81ebe7de50855bca"
+            ]
+        ]
+    },
+    {
+        "id": "81ebe7de50855bca",
+        "type": "change",
+        "z": "30145aeb5da7696e",
+        "name": "Connect to broker specified in config",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "connect",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "broker",
+                "pt": "msg",
+                "to": "config.mqtt.in",
+                "tot": "global"
+            },
+            {
+                "t": "set",
+                "p": "broker.force",
+                "pt": "msg",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 380,
+        "wires": [
+            [
+                "ac6b80d6dd067739",
+                "adde427c10dff07d"
+            ]
+        ]
+    },
+    {
+        "id": "8bfbcffec7b68a1e",
+        "type": "change",
+        "z": "30145aeb5da7696e",
+        "name": "Connect to broker specified in config",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "connect",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "broker",
+                "pt": "msg",
+                "to": "config.mqtt.out",
+                "tot": "global"
+            },
+            {
+                "t": "set",
+                "p": "broker.force",
+                "pt": "msg",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 500,
+        "wires": [
+            [
+                "c7bb0ead2f87e38e",
+                "d1085d584cda2026"
+            ]
+        ]
+    },
+    {
+        "id": "947fb04ffccc10e3",
+        "type": "link in",
+        "z": "30145aeb5da7696e",
+        "name": "",
+        "links": [
+            "2b5b49f7a32da690"
+        ],
+        "x": 235,
+        "y": 500,
+        "wires": [
+            [
+                "8bfbcffec7b68a1e"
+            ]
+        ]
+    },
+    {
+        "id": "d1085d584cda2026",
+        "type": "debug",
+        "z": "30145aeb5da7696e",
+        "name": "MQTT out connection",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 790,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "adde427c10dff07d",
+        "type": "debug",
+        "z": "30145aeb5da7696e",
+        "name": "MQTT in conncetion",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 800,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "1f5f4bb6b1efb96c",
+        "type": "link out",
+        "z": "30145aeb5da7696e",
+        "name": "MQTT Message In",
+        "mode": "link",
+        "links": [
+            "06df653f0e2da208"
+        ],
+        "x": 885,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "d148bf17774964f3",
+        "type": "link in",
+        "z": "30145aeb5da7696e",
+        "name": "MQTT send",
+        "links": [
+            "7f8c0b91aa93bcb4"
+        ],
+        "x": 555,
+        "y": 580,
+        "wires": [
+            [
+                "c7bb0ead2f87e38e",
+                "b8449efe0227a112"
+            ]
+        ]
+    },
+    {
+        "id": "06df653f0e2da208",
+        "type": "link in",
+        "z": "6d5c58c09b2db392",
+        "name": "App In",
+        "links": [
+            "1f5f4bb6b1efb96c"
+        ],
+        "x": 225,
+        "y": 220,
+        "wires": [
+            [
+                "a6fbda2f09293af3"
+            ]
+        ]
+    },
+    {
+        "id": "7f8c0b91aa93bcb4",
+        "type": "link out",
+        "z": "6d5c58c09b2db392",
+        "name": "App MQTT Out",
+        "mode": "link",
+        "links": [
+            "d148bf17774964f3"
+        ],
+        "x": 1085,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "a6fbda2f09293af3",
+        "type": "function",
+        "z": "6d5c58c09b2db392",
+        "name": "Compare Threshold",
+        "func": "let current = msg.payload.current\nlet machine = msg.payload.machine\nlet monitored_machines = global.get(\"config.monitored\")\n\nlet config = monitored_machines.find(elem => elem.machine=== machine)\n\nmsg.payload.running = current >= config.threshold\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 220,
+        "wires": [
+            [
+                "dcb52c04910aaab0"
+            ]
+        ]
+    },
+    {
+        "id": "dcb52c04910aaab0",
+        "type": "change",
+        "z": "6d5c58c09b2db392",
+        "name": "Create Downtime Event",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "\"downtime/event/\"&payload.machine&\"/\"&(payload.running?\"start\":\"stop\")",
+                "tot": "jsonata"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{\t   \"timestamp\": payload.timestamp,\t   \"machine\": payload.machine,\t   \"running\": payload.running,\t   \"source\": \"sensor\",\t   /*reason will only be included if the preceeding message has a reason entry*/\t   \"reason\":payload.reason\t}",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 690,
+        "y": 220,
+        "wires": [
+            [
+                "43142376aeb5f131",
+                "f477c8b21435acc2"
+            ]
+        ]
+    },
+    {
+        "id": "43142376aeb5f131",
+        "type": "rbe",
+        "z": "6d5c58c09b2db392",
+        "name": "",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload.running",
+        "topi": "payload.machine",
+        "x": 890,
+        "y": 220,
+        "wires": [
+            [
+                "7f8c0b91aa93bcb4"
+            ]
+        ]
+    },
+    {
+        "id": "f477c8b21435acc2",
+        "type": "debug",
+        "z": "6d5c58c09b2db392",
+        "name": "Debug2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 300,
+        "wires": []
+    }
+]

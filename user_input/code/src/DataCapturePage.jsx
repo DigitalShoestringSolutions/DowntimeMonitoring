@@ -5,7 +5,6 @@ import { useMQTTControl, useMQTTState } from './MQTTContext';
 import dayjs from 'dayjs'
 import { useToastDispatch, add_toast } from "./ToastContext";
 
-import { STATUS } from './variables';
 import { useConfig, useMachineList, useMachineReasons, useMachineStatus, useMachineStoppages, useSetReason } from './api'
 
 export function LivePage({ }) {
@@ -223,9 +222,7 @@ function RenderDuration({ event }) {
   React.useEffect(() => {
     if (refresh !== undefined) {
       const interval = setInterval(() => setBumpState(prev => !prev), refresh);
-      console.log("RAN", refresh)
       return () => {
-        console.log("Clear")
         clearInterval(interval);
       };
     }
@@ -255,7 +252,7 @@ function StatusBar({ config, machine_id, manualSetStatus }) {
   if (status?.running === true) {
     status_bar = <Button variant="success" size="lg" disabled={true}>Status: Running</Button>
     button = <Button variant="outline-danger" size="lg" onClick={() => manualSetStatus(false)}>Stop</Button>
-  } else if (status?.running === false) {
+  } else if ((status?.running === false) || (machine?.sensor === false && status === undefined)) {
     status_bar = <Button variant="danger" size="lg" disabled={true}>Status: Stopped</Button>
     button = <Button variant="outline-success" size="lg" onClick={() => manualSetStatus(true)}>Start</Button>
   }

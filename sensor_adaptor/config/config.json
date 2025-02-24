@@ -1,0 +1,18 @@
+{
+    "monitored": [
+        {
+            "machine": "0ff26118-5d79-4c70-aeb6-a8f547197f47",
+            "threshold": 4
+        }
+    ],
+    "mqtt": {
+        "in": {
+            "broker": "mqtt.docker.local",
+            "port": 1883
+        },
+        "out": {
+            "broker": "mqtt.docker.local",
+            "port": 1883
+        }
+    }
+}

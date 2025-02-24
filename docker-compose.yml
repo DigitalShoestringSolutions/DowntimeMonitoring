@@ -60,6 +60,23 @@ services:
         restart: unless-stopped
         depends_on:
             - "data-storage"
+            
+
+    sensor-adaptor:
+        extends:
+            file: ./sensor_adaptor/app.yml
+            service: app
+        networks:
+            internal:
+                aliases:
+                    - sensor-adaptor.docker.local
+
+        logging:
+            driver: syslog
+            options:
+                tag: docker-sensor-adaptor
+        restart: unless-stopped       
+
 networks:
     internal:
       name: shoestring-internal

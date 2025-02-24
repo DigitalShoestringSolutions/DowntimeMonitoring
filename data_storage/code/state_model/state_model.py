@@ -93,6 +93,9 @@ def update_state(event):
             # if event status is the same as the last state record then ignore
             if event.running == prevState.running:
                 return []
+            # if event occured before latest state then ignore
+            if event.timestamp < prevState.start:
+                return []
 
             prevState.end = event.timestamp
             prevState.save()
