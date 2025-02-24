@@ -227,48 +227,6 @@
         ]
     },
     {
-        "id": "def17c0db304d2e7",
-        "type": "change",
-        "z": "30145aeb5da7696e",
-        "name": "Make Subscribe Message",
-        "rules": [
-            {
-                "t": "set",
-                "p": "action",
-                "pt": "msg",
-                "to": "subscribe",
-                "tot": "str"
-            },
-            {
-                "t": "set",
-                "p": "topic",
-                "pt": "msg",
-                "to": "\"power_monitoring/\" & payload.machine & \"/#\"",
-                "tot": "jsonata"
-            },
-            {
-                "t": "set",
-                "p": "qos",
-                "pt": "msg",
-                "to": "1",
-                "tot": "num"
-            }
-        ],
-        "action": "",
-        "property": "",
-        "from": "",
-        "to": "",
-        "reg": false,
-        "x": 790,
-        "y": 80,
-        "wires": [
-            [
-                "ac6b80d6dd067739",
-                "2f3745b004dae1b2"
-            ]
-        ]
-    },
-    {
         "id": "a7e7f870c1258bac",
         "type": "link in",
         "z": "30145aeb5da7696e",
@@ -302,25 +260,6 @@
         "wires": []
     },
     {
-        "id": "ddef29380cc12299",
-        "type": "split",
-        "z": "30145aeb5da7696e",
-        "name": "",
-        "splt": "\\n",
-        "spltType": "str",
-        "arraySplt": 1,
-        "arraySpltType": "len",
-        "stream": false,
-        "addname": "",
-        "x": 590,
-        "y": 80,
-        "wires": [
-            [
-                "def17c0db304d2e7"
-            ]
-        ]
-    },
-    {
         "id": "b6ecb7baf617c406",
         "type": "change",
         "z": "30145aeb5da7696e",
@@ -330,7 +269,7 @@
                 "t": "set",
                 "p": "payload",
                 "pt": "msg",
-                "to": "config.monitored",
+                "to": "config.sources",
                 "tot": "global"
             }
         ],
@@ -343,7 +282,7 @@
         "y": 80,
         "wires": [
             [
-                "ddef29380cc12299"
+                "0b0126675a791214"
             ]
         ]
     },
@@ -352,7 +291,7 @@
         "type": "debug",
         "z": "30145aeb5da7696e",
         "name": "Debug",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -369,7 +308,7 @@
         "type": "debug",
         "z": "30145aeb5da7696e",
         "name": "MQTT out",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": true,
         "tostatus": false,
@@ -562,6 +501,26 @@
         ]
     },
     {
+        "id": "0b0126675a791214",
+        "type": "function",
+        "z": "30145aeb5da7696e",
+        "name": "Make Subscribe Message",
+        "func": "let sources = msg.payload;\nlet topics = sources.map(source => (source.topic))\n\nmsg.action = \"subscribe\"\nmsg.topic = topics\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 710,
+        "y": 80,
+        "wires": [
+            [
+                "2f3745b004dae1b2",
+                "ac6b80d6dd067739"
+            ]
+        ]
+    },
+    {
         "id": "06df653f0e2da208",
         "type": "link in",
         "z": "6d5c58c09b2db392",
@@ -595,7 +554,7 @@
         "type": "function",
         "z": "6d5c58c09b2db392",
         "name": "Compare Threshold",
-        "func": "let current = msg.payload.current\nlet machine = msg.payload.machine\nlet monitored_machines = global.get(\"config.monitored\")\n\nlet config = monitored_machines.find(elem => elem.machine=== machine)\n\nmsg.payload.running = current >= config.threshold\n\nreturn msg;",
+        "func": "let payload = msg.payload\nlet sources = global.get(\"config.sources\")\n\nlet source = sources.find(source => {\n    let found = true\n    Object.keys(source.filter).forEach(entry => {\n        if(payload[entry]!==source.filter[entry])\n            found = false\n    })\n\n    return found\n})\n\nnode.log(\"source:\" + source)\n\nmsg.payload.running = payload[source.metric] >= source.threshold\nmsg.payload.machine = source.target\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -669,7 +628,7 @@
         "type": "debug",
         "z": "6d5c58c09b2db392",
         "name": "Debug2",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
