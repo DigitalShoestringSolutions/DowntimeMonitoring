@@ -7,13 +7,26 @@ from . import models
 class MachineSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Machine
-        fields = ("id", "name", "sensor")
+        fields = (
+            "id",
+            "name",
+            "manual_input",
+            "edit_manual_input",
+            "edit_sensor_input",
+        )
 
 
 class StateSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.State
-        fields = ("record_id", "target", "running", "start", "end", "reason")
+        fields = (
+            "record_id",
+            "target",
+            "running",
+            "start",
+            "end",
+            "reason",
+        )
 
 
 class PrettyStateSerializer(serializers.ModelSerializer):
@@ -24,9 +37,20 @@ class PrettyStateSerializer(serializers.ModelSerializer):
         fields = ("record_id", "target", "running", "start", "end", "reason")
 
     def to_representation(self, instance):
+        context = self.context
+        if context["wrap"]:
+            if context["start"]:
+                if instance.start<context["start"]:
+                    instance.start = context["start"]
+
+            if context["end"]:
+                if instance.end is None or instance.end > context["end"]:
+                    instance.end = context["end"]
+
         output = super().to_representation(instance)
         if output["reason"] is None:
             output["reason"] = "Running" if output["running"] else "Unspecified"
+
         return output
 
 
@@ -45,13 +69,28 @@ class MQTTStateSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
+    target = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = models.StatusEvent
+        fields = ("event_id", "target", "running", "timestamp", "source")
+
+
+class NestedStateSerialiser(serializers.ModelSerializer):
+    class Meta:
+        model = models.State
         fields = (
-            "event_id",
-            "item_id",
-            "from_location_link",
-            "to_location_link",
-            "timestamp",
-            "quantity",
+            "record_id",
+            "target",
+            "running",
+            "start",
+            "end",
+            "reason"
         )
+
+    def to_representation(self, instance):
+        output = super().to_representation(instance)
+        output["events_during"] = EventSerializer(
+            instance.events_during.order_by("-timestamp", "-event_id"), many=True
+        ).data
+        output["trigger_event"] = EventSerializer(instance.trigger_event, many=False).data
+        return output

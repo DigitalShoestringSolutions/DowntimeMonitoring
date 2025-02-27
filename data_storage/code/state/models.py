@@ -5,9 +5,17 @@ import uuid
 class Machine(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.CharField(max_length=60)
-    sensor = models.BooleanField(
+    manual_input = models.BooleanField(
+        default=True,
+        help_text="If set to true, the machines status can be set manually in the user interface",
+    )
+    edit_manual_input = models.BooleanField(
+        default=True,
+        help_text="If set to true, users can edit or delete past events that were created manually",
+    )
+    edit_sensor_input = models.BooleanField(
         default=False,
-        help_text="Set to true if running status is based on a sensor value",
+        help_text="If set to true, users can edit or delete past events that were created by sensor inputs",
     )
 
     def __str__(self):
@@ -27,8 +35,18 @@ class StatusEvent(models.Model):
 
     source = models.CharField(max_length=6, choices=EventSource, null=True, blank=True)
 
+    # links
+    occured_during = models.ForeignKey("State",on_delete=models.SET_NULL,null=True,blank=True,related_name="events_during")
+    next_entry = models.OneToOneField(
+        "self",
+        related_name="previous_entry",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
     def __str__(self):
-        return f"{self.target} - {self.running}"
+        return f"{self.event_id}: {self.target} - {self.running}"
 
     class Meta:
         verbose_name_plural = "Event Records"
@@ -47,19 +65,19 @@ class State(models.Model):
     end = models.DateTimeField(blank=True, null=True)
 
     # links
-    previous_entry = models.ForeignKey(
+    previous_entry = models.OneToOneField(
         "self",
         related_name="next_entry",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
     )
-    trigger_event = models.ForeignKey(
+    trigger_event = models.OneToOneField(
         StatusEvent, related_name="resulting_state", on_delete=models.PROTECT
     )
 
     def __str__(self):
-        return str(self.target)
+        return f"{self.record_id} - {str(self.target)}"
 
     class Meta:
         verbose_name_plural = "State Records"

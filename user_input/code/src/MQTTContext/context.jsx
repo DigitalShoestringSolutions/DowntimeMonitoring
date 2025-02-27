@@ -168,6 +168,7 @@ export const MQTTProvider = ({
         if (state === SUB_STATE.unsubscribed) {
           console.log("subscribing to " + topic)
           client.subscribe(topic, {
+            qos: 1,
             onSuccess: () => {
               console.log("Successfully subscribed to '" + topic + "'")
               setSubState((prev) => ({ ...prev, [topic]: SUB_STATE.subscribed }))

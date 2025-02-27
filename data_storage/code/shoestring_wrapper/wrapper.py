@@ -20,6 +20,7 @@ class MQTTServiceWrapper(multiprocessing.Process):
         self.port = int(mqtt_conf["port"])
         self.client_id = mqtt_conf["id"]
 
+        self.publish_qos = mqtt_conf.get("publish_qos",0)
         self.topic_base = mqtt_conf["base_topic_template"]
         self.subscriptions = mqtt_conf.get("subscriptions",[])
 
@@ -122,7 +123,7 @@ class MQTTServiceWrapper(multiprocessing.Process):
                         )
                         msg_payload = msg_json["payload"]
                         logger.debug(f"pub topic:{topic} msg:{msg_payload}")
-                        client.publish(topic, json.dumps(msg_payload))
+                        client.publish(topic, json.dumps(msg_payload),self.publish_qos)
                     except zmq.ZMQError:
                         pass
                 client.loop(0.05)

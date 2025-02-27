@@ -66,7 +66,7 @@ class StateModel(threading.Thread):
                 pass
 
             # log event
-            event = StatusEvent.objects.create(
+            event = StatusEvent(
                 target=machine,
                 running=running,
                 timestamp=timestamp,
@@ -90,11 +90,26 @@ def update_state(event):
         try:
             prevState = State.objects.get(target__exact=event.target, end__isnull=True)
 
+            # will throw exception if somehow there are two events without next_entries
+            last_event = prevState.trigger_event
+            while last_event.next_entry != None:
+                last_event = last_event.next_entry
+
+            # if event occured before last event then ignore
+            if event.timestamp < last_event.timestamp:
+                logger.warning(
+                    f"event occured at {event.timestamp} before last event at {last_event.timestamp} -- ignoring"
+                )
+                return []
+
+            event.occured_during = prevState
+            event.save()
+
+            last_event.next_entry = event
+            last_event.save()
+
             # if event status is the same as the last state record then ignore
             if event.running == prevState.running:
-                return []
-            # if event occured before latest state then ignore
-            if event.timestamp < prevState.start:
                 return []
 
             prevState.end = event.timestamp
@@ -120,7 +135,7 @@ def update_state(event):
             )
 
         except State.DoesNotExist:
-            pass
+            event.save()
 
         newState = State.objects.create(
             target=event.target,
@@ -142,7 +157,7 @@ def update_state(event):
     # }
 
     logger.debug(f"new msg: {new_serializer.data}")
-    
+
     # send update
     output_messages.append(
         {"topic": f"{str(newState.target.id)}/new", "payload": new_serializer.data}

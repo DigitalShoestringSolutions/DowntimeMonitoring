@@ -22,8 +22,10 @@ def redirect_root(request):
     return response
 
 urlpatterns = [
+    path("/", redirect_root),
     path("admin/", admin.site.urls),
     path("state/", include("state.urls")),
+    path("events/", include("state.event_urls")),
     path("machines/", include("state.machine_urls")),
     path("reasons/", include("stop_reasons.urls")),
 ]

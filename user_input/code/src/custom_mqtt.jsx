@@ -34,6 +34,7 @@ export async function new_message_action(dispatch, queryClient, message) {
       })
     }))
 
+    queryClient.invalidateQueries({ queryKey: ['events', { id: machine_id }], refetchType: 'active' })
   }
 }
 

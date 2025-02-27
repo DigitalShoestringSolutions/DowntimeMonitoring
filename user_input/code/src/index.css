@@ -5,6 +5,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-width: 550px;
 }
 
 code {
@@ -33,5 +34,20 @@ code {
   75%,
   100% {
     color: transparent;
+  }
+}
+
+.icon_button{
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: gray;
+
+  &:hover{
+    color: inherit;
+  }
+
+  &:active {
+    color: var(--bs-primary);
   }
 }

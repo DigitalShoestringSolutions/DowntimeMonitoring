@@ -17,6 +17,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
+import { EventHistoryPage } from './EventHistoryPage';
 
 dayjs.extend(isToday);
 dayjs.extend(duration);
@@ -72,7 +73,8 @@ function Routing({ }) {
       <Route path='/' element={<Base />}>
         <Route path='/machines' element={<MachineList />} />
         {/* <Route path='/machine/m/:machine_id' element={<CapturePage machine_list={machine_list} {...props} />} /> */}
-        <Route path='/machine/:machine_id' element={<LivePage />} />
+        <Route path='/downtime/:machine_id' element={<LivePage />} />
+        <Route path="/history/:machine_id" element={<EventHistoryPage />} />
         <Route index element={<MachineList />}></Route>
       </Route>
     </Routes>
@@ -101,8 +103,8 @@ function Base({ setMachineList }) {
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" className='mb-2' />
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav variant="pills" className="me-auto">
-              <BSNavLink to='/machines'>Machines</BSNavLink>
+            <Nav variant="pills">
+              <BSNavLink to='/machines'>Machine List</BSNavLink>
             </Nav>
           </Navbar.Collapse>
         </Container>
@@ -138,7 +140,7 @@ function BSNavLink({ children, className, ...props }) {
   return <NavLink className={({ isActive }) => (isActive ? ("nav-link active " + className) : ("nav-link " + className))} {...props}>{children}</NavLink>
 }
 
-function MachineList({ }) {
+function MachineList({ url_prefix }) {
 
   let { data: config } = useConfig()
   let { data: machine_list, isLoading } = useMachineList(config)
@@ -156,11 +158,16 @@ function MachineList({ }) {
         <Card.Body>
           <ListGroup>
             {machine_list.map(item => (
-              <ListGroup.Item key={item.id} className="d-flex justify-content-between align-items-baseline">
-                {item.name}
-                <span className='flex-shrink-0'>
-                  <NavLink className="mx-2" to={"/machine/" + item.id}>
-                    <Button>Go</Button>
+              <ListGroup.Item key={item.id} className="d-flex justify-content-between align-items-baseline flex-wrap">
+                <div className='flex-grow-1 flex-shrink-0'>
+                  {item.name}
+                </div>
+                <span className='flex-shrink-1'>
+                  <NavLink to={"/history/" + item.id}>
+                    <Button className="m-1" variant="outline-secondary">View / Edit History</Button>
+                  </NavLink>
+                  <NavLink to={"/downtime/" + item.id}>
+                    <Button className="m-1">Record Downtime</Button>
                   </NavLink>
                 </span>
               </ListGroup.Item>

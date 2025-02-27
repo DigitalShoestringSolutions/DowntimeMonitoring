@@ -15,7 +15,8 @@ urlpatterns = [
     path("history/<uuid:machine_id>", views.history),
     path("set_reason/<int:record_id>", views.setReason),
     path("downtime", views.downtime),
-    path("downtime/<uuid:machine_id>", views.downtime)
+    path("downtime/<uuid:machine_id>", views.downtime),
+    path("downtime/bucket", views.windowed_downtime),
 ]
 
 # /state/                            ?t=timestamp
