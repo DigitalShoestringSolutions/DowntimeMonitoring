@@ -23,7 +23,6 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = "categories"
 
-
 class Reason(models.Model):
     id = models.BigAutoField(primary_key=True)
     text = models.CharField(max_length=60)
@@ -34,7 +33,6 @@ class Reason(models.Model):
 
     def __str__(self):
         return self.text
-
 
 class MachineReasonMap(models.Model):
     id = models.BigAutoField(primary_key=True)

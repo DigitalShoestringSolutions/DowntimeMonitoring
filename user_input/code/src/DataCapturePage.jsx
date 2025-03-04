@@ -5,11 +5,10 @@ import { useMQTTControl, useMQTTState } from './MQTTContext';
 import dayjs from 'dayjs'
 import { useToastDispatch, add_toast } from "./ToastContext";
 
-import { useConfig, useMachineList, useMachineReasons, useMachineStatus, useMachineStoppages, useSetReason } from './api'
+import { useMachineList, useMachineReasons, useMachineStatus, useMachineStoppages, useSetReason } from './api'
 
 export function LivePage({ }) {
-  let { data: config } = useConfig()
-  let { data: machine_list, isLoading } = useMachineList(config)
+  let { data: machine_list, isLoading } = useMachineList()
   const { sendJsonMessage, subscribe, unsubscribe } = useMQTTControl()
   let params = useParams();
   let navigate = useNavigate()
@@ -81,10 +80,9 @@ export function LivePage({ }) {
 }
 
 export function SelectReasonModalWrapper({ children, machine_id, event, setEvent }) {
-  let { data: config } = useConfig()
   let [selected_category, setSelectedCategory] = React.useState(undefined)
 
-  let set_reason = useSetReason(config, machine_id)
+  let set_reason = useSetReason(machine_id)
 
   const handleReasonClick = (reason_id) => {
     set_reason.mutate({ record_id: event.record_id, reason: reason_id })
@@ -100,7 +98,7 @@ export function SelectReasonModalWrapper({ children, machine_id, event, setEvent
   return <>
     {children}
     <ReasonModal
-      machine_id={machine_id} config={config}
+      machine_id={machine_id}
       show={event !== undefined}
       handleReasonClick={handleReasonClick}
       selected_category={selected_category}
@@ -110,12 +108,11 @@ export function SelectReasonModalWrapper({ children, machine_id, event, setEvent
 }
 
 function EventLog({ machine_id, handleEventClick }) {
-  let { data: config } = useConfig()
   const [page, setPage] = React.useState(1)
   const page_length = 10
   const [duration_filter, setDurationFilter] = React.useState("")
 
-  let { data: stoppages, isLoading } = useMachineStoppages(config, machine_id, page, page_length, duration_filter)
+  let { data: stoppages, isLoading } = useMachineStoppages(machine_id, page, page_length, duration_filter)
 
 
   if (isLoading) {
@@ -234,8 +231,7 @@ function format_duration(d) {
 
 export function RenderReasonButtonCell({ machine_id, event, handleEventClick }) {
 
-  let { data: config } = useConfig()
-  let { data: reason_set, isLoading } = useMachineReasons(config, machine_id)
+  let { data: reason_set, isLoading } = useMachineReasons(machine_id)
 
   if (isLoading) {
     return <td><Spinner /></td>
@@ -254,9 +250,8 @@ export function RenderReasonButtonCell({ machine_id, event, handleEventClick }) 
 }
 
 function StatusBar({ machine_id, manualSetStatus }) {
-  let { data: config } = useConfig()
-  let { data: status } = useMachineStatus(config, machine_id)
-  let { data: machine_list } = useMachineList(config)
+  let { data: status } = useMachineStatus(machine_id)
+  let { data: machine_list } = useMachineList()
   let machine = machine_list.find(machine => machine.id === machine_id)
 
   let status_bar = <Button variant="secondary" size="lg" disabled={true}>Status: Disconnected</Button>
@@ -264,13 +259,13 @@ function StatusBar({ machine_id, manualSetStatus }) {
   if (status?.running === true) {
     status_bar = <Button variant="success" size="lg" disabled={true}>Status: Running</Button>
     button = <Button variant="outline-danger" size="lg" onClick={() => manualSetStatus(false)}>Stop</Button>
-  } else if ((status?.running === false) || (machine?.manual_input === true && status === undefined)) {
+  } else if ((status?.running === false) || (machine?.enable_manual_input === true && status === undefined)) {
     status_bar = <Button variant="danger" size="lg" disabled={true}>Status: Stopped</Button>
     button = <Button variant="outline-success" size="lg" onClick={() => manualSetStatus(true)}>Start</Button>
   }
 
 
-  if (machine?.manual_input === true)
+  if (machine?.enable_manual_input === true)
     return <Container fluid>
       <Row className='gx-2 gy-1'>
         <Col xs={12} md={8} className="d-grid px-1">
@@ -291,9 +286,9 @@ function StatusBar({ machine_id, manualSetStatus }) {
     </Container>
 }
 
-function ReasonModal({ config, machine_id, show, handleReasonClick, selected_category, handleCategoryClick, close }) {
+function ReasonModal({ machine_id, show, handleReasonClick, selected_category, handleCategoryClick, close }) {
 
-  let { data: reason_set, isLoading } = useMachineReasons(config, machine_id)
+  let { data: reason_set, isLoading } = useMachineReasons(machine_id)
 
   if (isLoading) {
     return <Modal show={show} fullscreen={true}>

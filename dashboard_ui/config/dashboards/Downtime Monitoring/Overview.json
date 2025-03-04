@@ -24,7 +24,7 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 5,
+    "id": 2,
     "links": [
         {
             "asDropdown": true,
@@ -109,8 +109,23 @@
                     },
                     "fields": [
                         {
-                            "jsonPath": "machines[*].{\"machine\":machine,\"running\":running,\"stopped\":stopped}",
-                            "language": "jsonata",
+                            "jsonPath": "$.[*].machine",
+                            "language": "jsonpath",
+                            "name": ""
+                        },
+                        {
+                            "jsonPath": "$.[*].running",
+                            "language": "jsonpath",
+                            "name": ""
+                        },
+                        {
+                            "jsonPath": "$.[*].stopped",
+                            "language": "jsonpath",
+                            "name": ""
+                        },
+                        {
+                            "jsonPath": "$.[*].utilisation",
+                            "language": "jsonpath",
                             "name": ""
                         }
                     ],
@@ -133,49 +148,11 @@
                     ],
                     "queryParams": "",
                     "refId": "A",
-                    "urlPath": "/state/downtime"
+                    "urlPath": "/state/downtime/machine"
                 }
             ],
             "title": "Utilisation",
             "transformations": [
-                {
-                    "id": "extractFields",
-                    "options": {
-                        "format": "json",
-                        "replace": true,
-                        "source": "result"
-                    }
-                },
-                {
-                    "id": "calculateField",
-                    "options": {
-                        "alias": "total",
-                        "binary": {
-                            "left": "running",
-                            "right": "stopped"
-                        },
-                        "mode": "binary",
-                        "reduce": {
-                            "reducer": "sum"
-                        }
-                    }
-                },
-                {
-                    "id": "calculateField",
-                    "options": {
-                        "alias": "utilisation",
-                        "binary": {
-                            "left": "running",
-                            "operator": "/",
-                            "right": "total"
-                        },
-                        "mode": "binary",
-                        "reduce": {
-                            "reducer": "sum"
-                        },
-                        "replaceFields": false
-                    }
-                },
                 {
                     "id": "organize",
                     "options": {
@@ -262,11 +239,14 @@
             "title": "Total Time",
             "transformations": [
                 {
-                    "id": "extractFields",
+                    "id": "organize",
                     "options": {
-                        "format": "json",
-                        "replace": true,
-                        "source": "result"
+                        "excludeByName": {
+                            "utilisation": true
+                        },
+                        "includeByName": {},
+                        "indexByName": {},
+                        "renameByName": {}
                     }
                 }
             ],
@@ -342,7 +322,7 @@
                 "legend": {
                     "displayMode": "list",
                     "placement": "bottom",
-                    "showLegend": true
+                    "showLegend": false
                 },
                 "mergeValues": true,
                 "rowHeight": 0.9,
@@ -388,6 +368,10 @@
                         ],
                         [
                             "pretty",
+                            "true"
+                        ],
+                        [
+                            "wrap",
                             "true"
                         ]
                     ],
@@ -478,12 +462,12 @@
                     "options": {
                         "mappings": [
                             {
-                                "fieldName": "reason",
-                                "handlerKey": "field.name"
-                            },
-                            {
                                 "fieldName": "count",
                                 "handlerKey": "field.value"
+                            },
+                            {
+                                "fieldName": "category",
+                                "handlerKey": "field.name"
                             }
                         ]
                     }
@@ -552,16 +536,16 @@
                     },
                     "fields": [
                         {
-                            "jsonPath": "$.reasons[*].reason"
+                            "jsonPath": "$.[*].category"
                         },
                         {
-                            "jsonPath": "$.reasons[*].total_duration",
+                            "jsonPath": "$.[*].total_duration",
                             "language": "jsonpath",
                             "name": "",
                             "type": "number"
                         },
                         {
-                            "jsonPath": "$.reasons[*].count",
+                            "jsonPath": "$.[*].count",
                             "language": "jsonpath",
                             "name": ""
                         }
@@ -579,7 +563,7 @@
                     ],
                     "queryParams": "",
                     "refId": "A",
-                    "urlPath": "/state/downtime"
+                    "urlPath": "/state/downtime/category"
                 }
             ],
             "title": "Time Stopped - All Machines",
@@ -685,19 +669,19 @@
                     },
                     "fields": [
                         {
-                            "jsonPath": "$.machine_reasons[*].reason",
+                            "jsonPath": "$.[*].category",
                             "language": "jsonpath",
-                            "name": "reason",
+                            "name": "category",
                             "type": "string"
                         },
                         {
-                            "jsonPath": "$.machine_reasons[*].total_duration",
+                            "jsonPath": "$.[*].total_duration",
                             "language": "jsonpath",
                             "name": "",
                             "type": "number"
                         },
                         {
-                            "jsonPath": "$.machine_reasons[*].machine",
+                            "jsonPath": "$.[*].machine",
                             "language": "jsonpath",
                             "name": "machine",
                             "type": "string"
@@ -716,15 +700,15 @@
                     ],
                     "queryParams": "",
                     "refId": "A",
-                    "urlPath": "/state/downtime"
+                    "urlPath": "/state/downtime/machine-category"
                 }
             ],
-            "title": "Fault Times",
+            "title": "Fault Times - by Category",
             "transformations": [
                 {
                     "id": "groupingToMatrix",
                     "options": {
-                        "columnField": "reason",
+                        "columnField": "category",
                         "rowField": "machine",
                         "valueField": "total_duration"
                     }
@@ -733,7 +717,7 @@
             "type": "barchart"
         }
     ],
-    "refresh": "30s",
+    "refresh": "1m",
     "revision": 1,
     "schemaVersion": 39,
     "tags": [
@@ -743,13 +727,13 @@
         "list": []
     },
     "time": {
-        "from": "now-7d",
+        "from": "now-1d",
         "to": "now"
     },
     "timepicker": {},
     "timezone": "",
     "title": "Overview Dashboard",
     "uid": "w_PlcrN4z",
-    "version": 25,
+    "version": 12,
     "weekStart": ""
 }

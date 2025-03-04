@@ -142,8 +142,7 @@ function BSNavLink({ children, className, ...props }) {
 
 function MachineList({ url_prefix }) {
 
-  let { data: config } = useConfig()
-  let { data: machine_list, isLoading } = useMachineList(config)
+  let { data: machine_list, isLoading } = useMachineList()
 
   if (isLoading) {
     return <Container fluid="md">
@@ -154,7 +153,7 @@ function MachineList({ url_prefix }) {
   } else {
     return <Container fluid="md">
       <Card className='mt-2'>
-        <Card.Header className='text-center'><h1>{config?.location_page?.title}</h1></Card.Header>
+        <Card.Header className='text-center'><h1>Machines</h1></Card.Header>
         <Card.Body>
           <ListGroup>
             {machine_list.map(item => (

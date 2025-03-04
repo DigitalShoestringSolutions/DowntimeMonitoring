@@ -1,11 +1,11 @@
 import React from 'react'
-import { Container, Pagination, Card, Col, Row, Button, Modal, Table, Spinner, Form, InputGroup, OverlayTrigger, Tooltip, ButtonGroup, Alert } from 'react-bootstrap'
+import { Container, Pagination, Card, Col, Row, Button, Modal, Table, Spinner, Form, InputGroup, OverlayTrigger, Tooltip, ButtonGroup, Alert, ToggleButton, ToggleButtonGroup } from 'react-bootstrap'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useMQTTControl, useMQTTState } from './MQTTContext';
 import dayjs from 'dayjs'
 import { useToastDispatch, add_toast } from "./ToastContext";
 
-import { useConfig, useMachineList, useEventList, useMachineReasons, useSetReason, useModifyEvent, useDeleteEvent } from './api'
+import { useMachineList, useEventList, useMachineReasons, useSetReason, useModifyEvent, useDeleteEvent, useAddEvent } from './api'
 import { RenderDurationCell, RenderReasonButtonCell, RenderTimestampCell, SelectReasonModalWrapper } from './DataCapturePage';
 
 export function EventHistoryPage({ }) {
@@ -13,8 +13,7 @@ export function EventHistoryPage({ }) {
     let navigate = useNavigate()
     const machine_id = params.machine_id
 
-    let { data: config } = useConfig()
-    let { data: machine_list, isLoading } = useMachineList(config)
+    let { data: machine_list, isLoading } = useMachineList()
     const { subscribe, unsubscribe } = useMQTTControl()
     let [subscribed, setSubscribed] = React.useState(false)
 
@@ -63,30 +62,31 @@ export function EventHistoryPage({ }) {
 
 
 function EventLog({ machine, handleEventClick }) {
-    let { data: config } = useConfig()
     const [page, setPage] = React.useState(1)
     const page_length = 10
     const [from, setFrom] = React.useState(dayjs().startOf("day"))
     const [to, setTo] = React.useState(dayjs().endOf("day"))
 
     let { data: event_list, isLoading } = useEventList(
-        config,
         machine.id,
         page,
         page_length,
         from ? from.toISOString() : undefined,
         to ? to.toISOString() : undefined
     )
-    let { data: reason_set, isLoading: reasons_loading } = useMachineReasons(config, machine.id)
+    let { data: reason_set, isLoading: reasons_loading } = useMachineReasons(machine.id)
 
     let [edit_modal, setEditModal] = React.useState(undefined)
+    let [add_modal, setAddModal] = React.useState(undefined)
 
+    React.useEffect(() => { //reset page to 1 if date range changes
+        setPage(1)
+    }, [from, to])
 
     if (isLoading || reasons_loading) {
         return <div>Loading...</div>
     }
 
-    let duration_filter_elements = [5, 10, 15, 20, 30, 45, 60].map(step => (<option value={step} key={step}>{step} min</option>))
 
     let edit = (event) => {
         setEditModal(event)
@@ -133,6 +133,10 @@ function EventLog({ machine, handleEventClick }) {
             </Pagination>
             <div>Page {page}</div>
             <div className="my-1 mx-1">
+                {machine?.enable_historic_manual_input ?
+                    <Button variant="outline-success" size="sm" onClick={() => setAddModal(true)}>Add Downtime Event</Button>
+                    : ""
+                }
             </div>
         </div>
         <Table bordered responsive="sm" className='mb-2'>
@@ -162,7 +166,8 @@ function EventLog({ machine, handleEventClick }) {
                 {event_list.length < page_length && <tr><td colSpan={4} className='text-center'>End of Records</td></tr>}
             </tbody>
         </Table>
-        <EditModal event={edit_modal} close={() => setEditModal(undefined)} />
+        <EditModal event={edit_modal} close={() => setEditModal(undefined)} machine={machine} />
+        <AddModal show={add_modal} close={() => setAddModal(false)} machine={machine} />
     </Card>
 }
 
@@ -187,7 +192,7 @@ function RenderSourceCell({ source }) {
 function RenderEventRow({ event, machine, edit }) {
 
     let controls = ""
-    if ((event?.source === "user" && machine?.edit_manual_input === true) || (event?.source === "sensor" && machine?.edit_sensor_input === true))
+    if ((event?.source === "user" && machine?.enable_edit_manual_input === true) || (event?.source === "sensor" && machine?.enable_edit_sensor_input === true))
         controls = <Button size="sm" variant="outline-secondary" onClick={() => edit(event)}>Edit</Button>
 
     return <tr>
@@ -199,7 +204,7 @@ function RenderEventRow({ event, machine, edit }) {
     </tr>
 }
 
-function EditModal({ event, close }) {
+function EditModal({ event, close, machine }) {
     let [date, setDate] = React.useState(undefined)
     let [time, setTime] = React.useState(undefined)
     let [error, setError] = React.useState(undefined)
@@ -247,10 +252,10 @@ function EditModal({ event, close }) {
                 <InputGroup.Text>Date</InputGroup.Text>
                 <Form.Control type="date" value={date} onChange={(evt) => setDate(evt.target.value)} />
                 <InputGroup.Text>Time</InputGroup.Text>
-                <Form.Control type="time" value={time} onChange={(evt) => setTime(evt.target.value)} />
+                <Form.Control type="time" step={1} value={time} onChange={(evt) => setTime(evt.target.value)} />
             </InputGroup>
             {error?.error &&
-                <Alert variant="danger">
+                <Alert variant="danger" className='mt-2'>
                     <div>{error.reason}.</div>
                     {error?.limit &&
                         <div> Must be {error.error == "too_early" ? "after" : "before"} {dayjs(error.limit).format("YYYY-MM-DD HH:mm:ss")}.</div>
@@ -260,6 +265,70 @@ function EditModal({ event, close }) {
             <ButtonGroup className='mt-2 w-100'>
                 <Button variant="danger" onClick={do_delete}>Delete Event</Button>
                 <Button onClick={do_update}>Update Timestamp</Button>
+            </ButtonGroup>
+        </Modal.Body>
+    </Modal>
+}
+
+function AddModal({ show, close, machine }) {
+    let [running, setRunning] = React.useState(false)
+    let [date, setDate] = React.useState(dayjs().format("YYYY-MM-DD"))
+    let [time, setTime] = React.useState(dayjs().format("HH:mm:ss"))
+    let [error, setError] = React.useState(undefined)
+    let addEvent = useAddEvent()
+
+    const do_add = () => {
+        let timestamp = dayjs(date + " " + time)
+        addEvent.mutate({ running: running, timestamp: timestamp.toISOString(), machine: machine.id }, {
+            onSuccess: (result, variables, context) => {
+                close()
+            },
+            onError: (error, variables, context) => {
+                console.log(error)
+                setError(error?.payload)
+            }
+        })
+    }
+
+    return <Modal show={show} onHide={close} fullscreen={false}>
+        <Modal.Header className='text-center' closeButton>
+            <Modal.Title className="w-100">Add Downtime Event</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            <InputGroup className='mb-2'>
+                <InputGroup.Text>Event Type</InputGroup.Text>
+                <ToggleButton
+                    type="radio"
+                    name="running"
+                    variant="outline-success"
+                    checked={running}
+                    onClick={() => setRunning(true)}
+                >
+                    Start
+                </ToggleButton>
+                <ToggleButton
+                    type="radio"
+                    name="running"
+                    variant="outline-danger"
+                    checked={!running}
+                    onClick={() => setRunning(false)}
+                >
+                    Stop
+                </ToggleButton>
+            </InputGroup>
+            <InputGroup>
+                <InputGroup.Text>Date</InputGroup.Text>
+                <Form.Control type="date" value={date} onChange={(evt) => setDate(evt.target.value)} />
+                <InputGroup.Text>Time</InputGroup.Text>
+                <Form.Control type="time" step={1} value={time} onChange={(evt) => setTime(evt.target.value)} />
+            </InputGroup>
+            {error?.error &&
+                <Alert variant="danger" className='mt-2'>
+                    <div>{error.reason}.</div>
+                </Alert>
+            }
+            <ButtonGroup className='mt-2 w-100'>
+                <Button variant="success" onClick={do_add}>Add</Button>
             </ButtonGroup>
         </Modal.Body>
     </Modal>

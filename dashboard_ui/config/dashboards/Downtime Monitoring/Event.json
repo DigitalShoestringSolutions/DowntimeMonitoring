@@ -24,7 +24,7 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 3,
+    "id": 4,
     "links": [
         {
             "asDropdown": true,
@@ -234,6 +234,6 @@
     "timezone": "",
     "title": "Event List",
     "uid": "kNxFI6H4z",
-    "version": 8,
+    "version": 1,
     "weekStart": ""
 }

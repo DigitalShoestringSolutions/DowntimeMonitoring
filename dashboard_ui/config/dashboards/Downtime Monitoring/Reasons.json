@@ -24,7 +24,7 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 2,
+    "id": 3,
     "links": [
         {
             "asDropdown": true,
@@ -35,7 +35,7 @@
                 "downtime"
             ],
             "targetBlank": false,
-            "title": "Dashboard links",
+            "title": "Dashboards",
             "tooltip": "",
             "type": "dashboards",
             "url": ""
@@ -106,21 +106,20 @@
                     },
                     "fields": [
                         {
-                            "jsonPath": "$.machine_reasons[*].reason"
+                            "jsonPath": "$.[*].reason"
                         },
                         {
-                            "jsonPath": "$.machine_reasons[*].total_duration",
-                            "language": "jsonpath",
-                            "name": "",
-                            "type": "number"
-                        },
-                        {
-                            "jsonPath": "$.machine_reasons[*].count",
+                            "jsonPath": "$.[*].total_duration",
                             "language": "jsonpath",
                             "name": ""
                         },
                         {
-                            "jsonPath": "$.machine_reasons[*].machine",
+                            "jsonPath": "$.[*].count",
+                            "language": "jsonpath",
+                            "name": ""
+                        },
+                        {
+                            "jsonPath": "$.[*].machine",
                             "language": "jsonpath",
                             "name": ""
                         }
@@ -138,10 +137,10 @@
                     ],
                     "queryParams": "",
                     "refId": "A",
-                    "urlPath": "/state/downtime"
+                    "urlPath": "/state/downtime/machine-reason"
                 }
             ],
-            "title": "Stoppage Reasons",
+            "title": "Stoppage Reasons - Time",
             "transformations": [
                 {
                     "id": "groupingToMatrix",
@@ -222,7 +221,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Stoppage Reasons",
+            "title": "Stoppage Reasons - Count",
             "transformations": [
                 {
                     "id": "groupingToMatrix",
@@ -243,6 +242,163 @@
                 }
             ],
             "type": "table"
+        },
+        {
+            "datasource": {
+                "type": "marcusolsson-json-datasource",
+                "uid": "json_api"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "custom": {
+                        "fillOpacity": 70,
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "insertNulls": false,
+                        "lineWidth": 0,
+                        "spanNulls": false
+                    },
+                    "mappings": [
+                        {
+                            "options": {
+                                "End of Shift": {
+                                    "color": "transparent",
+                                    "index": 1
+                                },
+                                "Running": {
+                                    "color": "green",
+                                    "index": 0
+                                }
+                            },
+                            "type": "value"
+                        },
+                        {
+                            "options": {
+                                "pattern": ".*",
+                                "result": {
+                                    "color": "red",
+                                    "index": 2
+                                }
+                            },
+                            "type": "regex"
+                        }
+                    ],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 5,
+                "w": 24,
+                "x": 0,
+                "y": 18
+            },
+            "id": 4,
+            "options": {
+                "alignValue": "left",
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "mergeValues": true,
+                "rowHeight": 0.9,
+                "showValue": "auto",
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                    "cacheDurationSeconds": 5,
+                    "datasource": {
+                        "type": "marcusolsson-json-datasource",
+                        "uid": "json_api"
+                    },
+                    "experimentalGroupByField": "target",
+                    "fields": [
+                        {
+                            "jsonPath": "$[*].start",
+                            "type": "time"
+                        },
+                        {
+                            "jsonPath": "$[*].target",
+                            "language": "jsonpath",
+                            "name": ""
+                        },
+                        {
+                            "jsonPath": "$[*].reason",
+                            "language": "jsonpath",
+                            "name": " "
+                        }
+                    ],
+                    "method": "GET",
+                    "params": [
+                        [
+                            "from",
+                            "${__from:date:iso}"
+                        ],
+                        [
+                            "to",
+                            "${__to:date:iso}"
+                        ],
+                        [
+                            "pretty",
+                            "true"
+                        ],
+                        [
+                            "wrap",
+                            "true"
+                        ]
+                    ],
+                    "queryParams": "",
+                    "refId": "A",
+                    "urlPath": "/state/history"
+                }
+            ],
+            "title": "Machine States",
+            "type": "state-timeline"
+        },
+        {
+            "datasource": {
+                "type": "datasource",
+                "uid": "grafana"
+            },
+            "description": "",
+            "gridPos": {
+                "h": 2,
+                "w": 20,
+                "x": 0,
+                "y": 23
+            },
+            "id": 5,
+            "options": {
+                "code": {
+                    "language": "plaintext",
+                    "showLineNumbers": false,
+                    "showMiniMap": false
+                },
+                "content": "The panel above is here to help you zoom in on any areas of interest.\nClick and drag to select a timeframe to zoon into.",
+                "mode": "markdown"
+            },
+            "pluginVersion": "10.4.0",
+            "title": "Note:",
+            "type": "text"
         }
     ],
     "refresh": "",
@@ -262,6 +418,6 @@
     "timezone": "",
     "title": "Stoppage Reasons",
     "uid": "A0VDzcAVk",
-    "version": 5,
+    "version": 7,
     "weekStart": ""
 }

@@ -25,7 +25,8 @@ export function useConfig() {
 }
 
 
-export function useMachineList(config) {
+export function useMachineList() {
+    let { data: config } = useConfig()
     return useQuery(
         {
             queryKey: ['machine_list'],
@@ -35,7 +36,8 @@ export function useMachineList(config) {
     )
 }
 
-export function useMachineReasons(config, machine_id) {
+export function useMachineReasons(machine_id) {
+    let { data: config } = useConfig()
     return useQuery(
         {
             queryKey: ['reasons', { id: machine_id }],
@@ -45,7 +47,8 @@ export function useMachineReasons(config, machine_id) {
     )
 }
 
-export function useMachineStatus(config, machine_id) {
+export function useMachineStatus(machine_id) {
+    let { data: config } = useConfig()
     return useQuery(
         {
             queryKey: ['status', { id: machine_id }],
@@ -54,7 +57,8 @@ export function useMachineStatus(config, machine_id) {
     )
 }
 
-export function useEventList(config, machine_id, page, page_length, from = undefined, to = undefined) {
+export function useEventList(machine_id, page, page_length, from = undefined, to = undefined) {
+    let { data: config } = useConfig()
     const searchParams = new URLSearchParams();
 
     searchParams.append("page-length", page_length)
@@ -71,7 +75,8 @@ export function useEventList(config, machine_id, page, page_length, from = undef
     )
 }
 
-export function useMachineStoppages(config, machine_id, page, page_length, duration_filter) {
+export function useMachineStoppages(machine_id, page, page_length, duration_filter) {
+    let { data: config } = useConfig()
     const searchParams = new URLSearchParams();
 
     searchParams.append("page-length", page_length)
@@ -89,7 +94,8 @@ export function useMachineStoppages(config, machine_id, page, page_length, durat
     )
 }
 
-export function useSetReason(config, machine_id) {
+export function useSetReason(machine_id) {
+    let { data: config } = useConfig()
     return useMutation(
         {
             mutationFn: async ({ record_id, reason }) => {
@@ -139,6 +145,27 @@ export function useDeleteEvent() {
                 let url = "http://" + get_url(config) + "/events/delete/" + event_id
                 return APIBackend.api_delete(url).then(({ status, payload }) => {
                     if (status == 200)
+                        return payload
+                    else
+                        throw new APIException("API ERROR", status, payload)
+                })
+            },
+            onSuccess: (result, mutation_data) => {
+                queryClient.invalidateQueries({ queryKey: ['events'], refetchType: 'active' })
+            }
+        }
+    )
+}
+
+export function useAddEvent() {
+    let { data: config } = useConfig()
+    const queryClient = useQueryClient()
+    return useMutation(
+        {
+            mutationFn: async ({ running, timestamp, machine }) => {
+                let url = "http://" + get_url(config) + "/events/add"
+                return APIBackend.api_post(url, { running: running, timestamp: timestamp, machine: machine }).then(({ status, payload }) => {
+                    if (status == 201)
                         return payload
                     else
                         throw new APIException("API ERROR", status, payload)

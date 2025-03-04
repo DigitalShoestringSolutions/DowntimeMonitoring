@@ -24,7 +24,7 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 4,
+    "id": 5,
     "links": [
         {
             "asDropdown": true,
@@ -35,7 +35,7 @@
                 "downtime"
             ],
             "targetBlank": false,
-            "title": "Overview",
+            "title": "Dashboards",
             "tooltip": "",
             "type": "dashboards",
             "url": ""
@@ -109,10 +109,15 @@
                     },
                     "fields": [
                         {
-                            "jsonPath": "$.machines[0].running"
+                            "jsonPath": "$.[0].running"
                         },
                         {
-                            "jsonPath": "$.machines[0].stopped",
+                            "jsonPath": "$.[0].stopped",
+                            "language": "jsonpath",
+                            "name": ""
+                        },
+                        {
+                            "jsonPath": "$.[0].utilisation",
                             "language": "jsonpath",
                             "name": ""
                         }
@@ -130,43 +135,21 @@
                     ],
                     "queryParams": "",
                     "refId": "A",
-                    "urlPath": "/state/downtime/${machine}"
+                    "urlPath": "/state/downtime/machine/${machine}"
                 }
             ],
             "title": "Utilisation",
             "transformations": [
                 {
-                    "id": "calculateField",
+                    "id": "organize",
                     "options": {
-                        "alias": "total",
-                        "binary": {
-                            "left": "running",
-                            "right": "stopped"
+                        "excludeByName": {
+                            "running": true,
+                            "stopped": true
                         },
-                        "mode": "binary",
-                        "reduce": {
-                            "include": [
-                                "running",
-                                "stopped"
-                            ],
-                            "reducer": "sum"
-                        }
-                    }
-                },
-                {
-                    "id": "calculateField",
-                    "options": {
-                        "alias": "downtime",
-                        "binary": {
-                            "left": "running",
-                            "operator": "/",
-                            "right": "total"
-                        },
-                        "mode": "binary",
-                        "reduce": {
-                            "reducer": "sum"
-                        },
-                        "replaceFields": true
+                        "includeByName": {},
+                        "indexByName": {},
+                        "renameByName": {}
                     }
                 }
             ],
@@ -235,7 +218,10 @@
                 {
                     "id": "organize",
                     "options": {
-                        "excludeByName": {},
+                        "excludeByName": {
+                            "utilisation": true
+                        },
+                        "includeByName": {},
                         "indexByName": {
                             "false": 1,
                             "true": 0
@@ -325,17 +311,17 @@
                     },
                     "fields": [
                         {
-                            "jsonPath": "$.reasons[*].reason",
+                            "jsonPath": "$.[*].reason",
                             "type": "string"
                         },
                         {
-                            "jsonPath": "$.reasons[*].count",
+                            "jsonPath": "$.[*].count",
                             "language": "jsonpath",
                             "name": "",
                             "type": "number"
                         },
                         {
-                            "jsonPath": "$.reasons[*].total_duration",
+                            "jsonPath": "$.[*].total_duration",
                             "language": "jsonpath",
                             "name": ""
                         }
@@ -353,7 +339,7 @@
                     ],
                     "queryParams": "",
                     "refId": "A",
-                    "urlPath": "/state/downtime/${machine}"
+                    "urlPath": "/state/downtime/reasons/${machine}"
                 }
             ],
             "title": "Number of Stops",
@@ -544,7 +530,7 @@
                 "legend": {
                     "displayMode": "list",
                     "placement": "bottom",
-                    "showLegend": true
+                    "showLegend": false
                 },
                 "mergeValues": true,
                 "rowHeight": 0.9,
@@ -586,6 +572,10 @@
                         [
                             "pretty",
                             "true"
+                        ],
+                        [
+                            "wrap",
+                            "true"
                         ]
                     ],
                     "queryParams": "",
@@ -597,7 +587,7 @@
             "type": "state-timeline"
         }
     ],
-    "refresh": "5s",
+    "refresh": "",
     "revision": 1,
     "schemaVersion": 39,
     "tags": [
@@ -651,13 +641,13 @@
         ]
     },
     "time": {
-        "from": "now-7d",
+        "from": "now-1d",
         "to": "now"
     },
     "timepicker": {},
     "timezone": "",
     "title": "Machine Dashboard",
     "uid": "AoRWg_H4z",
-    "version": 30,
+    "version": 10,
     "weekStart": ""
 }

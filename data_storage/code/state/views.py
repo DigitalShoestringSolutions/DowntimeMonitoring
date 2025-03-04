@@ -30,8 +30,16 @@ from .serializers import (
 )
 import json
 import zmq
+from functools import lru_cache
+from state_model.state_model import (
+    make_update_state_mqtt_message,
+    make_delete_state_mqtt_message,
+    make_new_state_mqtt_message
+)
 
 context = zmq.Context()
+
+from state_model import state_model
 
 
 @api_view(("GET",))
@@ -79,16 +87,17 @@ def setReason(request, record_id):
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer))
 def updateEvent(request, event_id):
     event = get_object_or_404(StatusEvent, event_id=event_id)
+    updated_states = []
 
     # permissions
     machine = event.target
-    if (not machine.edit_manual_input and event.source == EventSource.USER) or (
-        not machine.edit_sensor_input and event.source == EventSource.SENSOR
+    if (not machine.enable_edit_manual_input and event.source == EventSource.USER) or (
+        not machine.enable_edit_sensor_input and event.source == EventSource.SENSOR
     ):
         return Response(
             {
                 "error": "no_permission",
-                "reason": "Editting this event is not permitted for this machine",
+                "reason": "Editting this event is not permitted for this machine. This can be changed in the machine settings.",
             },
             status=401,
         )
@@ -136,16 +145,30 @@ def updateEvent(request, event_id):
         caused_state = event.resulting_state
         caused_state.start = new_timestamp
         caused_state.save()
+        updated_states.append(caused_state)
 
         prior_state = caused_state.previous_entry
         if prior_state:
             prior_state.end = new_timestamp
             prior_state.save()
+            updated_states.append(prior_state)
 
     except StatusEvent.resulting_state.RelatedObjectDoesNotExist:
         pass  # does not have a caused_state
 
     event.save()
+
+    #mqtt updates
+    zmq_conf = settings.ZMQ_CONFIG["state_out"]
+    socket = context.socket(zmq_conf["type"])
+    socket.connect(zmq_conf["address"])
+
+    output = [
+        make_update_state_mqtt_message(updated_state)
+        for updated_state in updated_states
+    ]
+    for msg in output:
+        socket.send_json(msg)
 
     return Response()
 
@@ -154,16 +177,17 @@ def updateEvent(request, event_id):
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer))
 def deleteEvent(request, event_id):
     event = get_object_or_404(StatusEvent, event_id=event_id)
+    deleted_state_messages = []
 
     # permissions
     machine = event.target
-    if (not machine.edit_manual_input and event.source == EventSource.USER) or (
-        not machine.edit_sensor_input and event.source == EventSource.SENSOR
+    if (not machine.enable_delete_manual_input and event.source == EventSource.USER) or (
+        not machine.enable_delete_sensor_input and event.source == EventSource.SENSOR
     ):
         return Response(
             {
                 "error": "no_permission",
-                "reason": "Deleting this event is not permitted for this machine",
+                "reason": "Deleting this event is not permitted for this machine. This can be changed in the machine settings.",
             },
             status=401,
         )
@@ -238,6 +262,7 @@ def deleteEvent(request, event_id):
                         next_next_state.previous_entry = prior_state
 
                     next_state.events_during.update(occured_during=prior_state)
+                    deleted_state_messages.append(make_delete_state_mqtt_message(next_state))
                     next_state.delete()
                 elif prior_state and next_state is None:  # Case 5
                     prior_state.end = None
@@ -250,6 +275,7 @@ def deleteEvent(request, event_id):
                     caused_state.events_during.update(occured_during=prior_state)
                     prior_state.save()
 
+                deleted_state_messages.append(make_delete_state_mqtt_message(caused_state))
                 caused_state.delete()  # all cases
 
                 if (
@@ -264,8 +290,52 @@ def deleteEvent(request, event_id):
         if previous_event:
             previous_event.save()
 
+    # mqtt updates
+    zmq_conf = settings.ZMQ_CONFIG["state_out"]
+    socket = context.socket(zmq_conf["type"])
+    socket.connect(zmq_conf["address"])
+
+    for msg in deleted_state_messages:
+        socket.send_json(msg)
+
     return Response()
 
+
+@api_view(("POST",))
+@renderer_classes((JSONRenderer, BrowsableAPIRenderer))
+def addEvent(request):
+
+    machine_id = request.data["machine"]
+    running = request.data["running"]
+    timestamp = dateutil.parser.isoparse(request.data["timestamp"])
+    source = request.data.get("source",EventSource.USER)
+
+    try:
+        new_states, updated_states = state_model.new_event(machine_id,running,timestamp,source)
+    except Machine.DoesNotExist:
+        return Response({"error":"not_found","reason":f"Machine not found"},status=400)
+
+    # mqtt updates
+    zmq_conf = settings.ZMQ_CONFIG["state_out"]
+    socket = context.socket(zmq_conf["type"])
+    socket.connect(zmq_conf["address"])
+
+    output = [
+                make_new_state_mqtt_message(new_state) for new_state in new_states
+            ]
+    output.extend(
+        [
+            make_update_state_mqtt_message(updated_state)
+            for updated_state in updated_states
+        ]
+    )
+
+    print(output)
+    
+    for msg in output:
+        socket.send_json(msg)
+
+    return Response(status=201)
 
 @api_view(("GET",))
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
@@ -318,7 +388,7 @@ def history(request, machine_id=None):
     start_dt = None
     if t_start:
         start_dt = dateutil.parser.isoparse(t_start)
-        q = q & Q(end__gte=start_dt) | Q(end__isnull=True)
+        q = q & (Q(end__gte=start_dt) | Q(end__isnull=True))
 
     end_dt = None
     if t_end:
@@ -397,7 +467,7 @@ def eventsForMachineByState(request, machine_id):
 
     if t_start:
         start_dt = dateutil.parser.isoparse(t_start)
-        q = q & Q(end__gte=start_dt) | Q(end__isnull=True)
+        q = q & (Q(end__gte=start_dt) | Q(end__isnull=True))
 
     if t_end:
         end_dt = dateutil.parser.isoparse(t_end)
@@ -426,53 +496,123 @@ def eventsForMachineByState(request, machine_id):
 
 @api_view(("GET",))
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
-def downtime(request, machine_id=None):
+def get_downtime_by_machine(request, machine_id=None):
+    t_query_from = request.GET.get("from", None)
+    t_query_to = request.GET.get("to", None)
 
-    machine_results, reason_results, machine_reason_results = do_get_downtime(
-        request, machine_id
+    results = do_get_downtime(
+        t_query_from, t_query_to, machine_id, aggregate_downtime_by_machine
     )
 
-    machine_outputs = [
+    output = [
         {
             **values,
             "machine": target.name,
+            "utilisation": (
+                0
+                if values["running"] == 0
+                else values["running"] / (values["running"] + values["stopped"])
+            ),
         }
-        for target, values in machine_results.items()
-    ]
-    reason_outputs = [
-        {"reason": reason.text if reason is not None else "Unspecified", **values}
-        for reason, values in reason_results.items()
+        for target, values in results.items()
     ]
 
-    machine_reasons = [
+    return Response(output)
+
+
+@api_view(("GET",))
+@renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
+def get_downtime_by_reason(request, machine_id=None):
+    t_query_from = request.GET.get("from", None)
+    t_query_to = request.GET.get("to", None)
+
+    results = do_get_downtime(
+        t_query_from, t_query_to, machine_id, aggregate_downtime_by_reason
+    )
+
+    output = [
+        {"reason": reason.text if reason is not None else "Unspecified", **values}
+        for reason, values in results.items()
+    ]
+
+    return Response(output)
+
+
+@api_view(("GET",))
+@renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
+def get_downtime_by_category(request, machine_id=None):
+    t_query_from = request.GET.get("from", None)
+    t_query_to = request.GET.get("to", None)
+
+    results = do_get_downtime(
+        t_query_from, t_query_to, machine_id, aggregate_downtime_by_category
+    )
+
+    output = [
+        {
+            "category": category.text if category is not None else "Uncategorised",
+            **values,
+        }
+        for category, values in results.items()
+    ]
+
+    return Response(output)
+
+
+@api_view(("GET",))
+@renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
+def get_downtime_by_machine_reason(request, machine_id=None):
+    t_query_from = request.GET.get("from", None)
+    t_query_to = request.GET.get("to", None)
+
+    results = do_get_downtime(
+        t_query_from, t_query_to, machine_id, aggregate_downtime_by_machine_reason
+    )
+
+    output = [
         {
             "machine": machine.name,
             "reason": reason.text if reason is not None else "Unspecified",
             **metrics,
         }
-        for machine, values in machine_reason_results.items()
+        for machine, values in results.items()
         for reason, metrics in values.items()
     ]
-    
-    return Response(
-        {
-            "machines": machine_outputs,
-            "reasons": reason_outputs,
-            "machine_reasons": machine_reasons,
-        }
+
+    return Response(output)
+
+
+@api_view(("GET",))
+@renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
+def get_downtime_by_machine_category(request, machine_id=None):
+    t_query_from = request.GET.get("from", None)
+    t_query_to = request.GET.get("to", None)
+
+    results = do_get_downtime(
+        t_query_from, t_query_to, machine_id, aggregate_downtime_by_machine_category
     )
 
+    output = [
+        {
+            "machine": machine.name,
+            "category": category.text if category is not None else "Uncategorised",
+            **metrics,
+        }
+        for machine, values in results.items()
+        for category, metrics in values.items()
+    ]
 
-def do_get_downtime(request, machine_id):
-    t_query_start = request.GET.get("from", None)
-    t_query_to = request.GET.get("to", None)
+    return Response(output)
+
+
+def do_get_downtime(t_query_from, t_query_to, machine_id, accumulation_function):
 
     q = ~Q(reason__considered_downtime=False)
 
     start_query_from_dt = None
-    if t_query_start:
-        start_query_from_dt = dateutil.parser.isoparse(t_query_start)
-        q = q & Q(end__gte=start_query_from_dt) | Q(end__isnull=True)
+    if t_query_from:
+        start_query_from_dt = dateutil.parser.isoparse(t_query_from)
+        q = q & (Q(end__gte=start_query_from_dt) | Q(end__isnull=True))
 
     end_query_to_dt = None
     if t_query_to:
@@ -482,22 +622,17 @@ def do_get_downtime(request, machine_id):
     if machine_id:
         q = q & Q(target__id__exact=machine_id)
 
+    print(q)
     qs = (
         State.objects.filter(q)
         .order_by("start")
         .select_related("target")  # DB optimisation
         .select_related("reason")  # DB optimisation
+        .select_related("reason__category")  # DB optimisation
     )
 
-    machine_results = {}
-    reason_results = {}
-    machine_reason_results = {}
+    accumulator = {}
     for entry in qs:
-        # output init
-        if entry.target not in machine_results:
-            machine_results[entry.target] = {"running": 0, "stopped": 0, "count": 0}
-            machine_reason_results[entry.target] = {}
-
         # timestamp windowing
         end_ts = window_timestamp(
             value_or_default_to_now(entry.end), upper_limit=end_query_to_dt
@@ -507,34 +642,75 @@ def do_get_downtime(request, machine_id):
         # duration calculation
         duration = (end_ts - start_ts).total_seconds()
 
-        # assign to machine
-        if entry.running:
-            machine_results[entry.target]["running"] += duration
-        else:
-            machine_results[entry.target]["stopped"] += duration
-            machine_results[entry.target]["count"] += 1
+        # call accumulation_function
+        accumulation_function(accumulator, entry, duration)
 
-        if entry.running == False:
-            # assign to reason
-            if entry.reason not in reason_results:
-                reason_results[entry.reason] = {"total_duration": 0, "count": 0}
+    return accumulator
 
-            reason_results[entry.reason]["total_duration"] += duration
-            reason_results[entry.reason]["count"] += 1
 
-            # assign to machine-reason pairing
-            if entry.reason not in machine_reason_results[entry.target]:
-                machine_reason_results[entry.target][entry.reason] = {
-                    "total_duration": 0,
-                    "count": 0,
-                }
+def aggregate_downtime_by_machine(acc, entry, duration):
+    if entry.target not in acc:
+        acc[entry.target] = {"running": 0, "stopped": 0, "count": 0}
 
-            machine_reason_results[entry.target][entry.reason][
-                "total_duration"
-            ] += duration
-            machine_reason_results[entry.target][entry.reason]["count"] += 1
+    # assign to machine
+    if entry.running:
+        acc[entry.target]["running"] += duration
+    else:
+        acc[entry.target]["stopped"] += duration
+        acc[entry.target]["count"] += 1
 
-    return machine_results, reason_results, machine_reason_results
+
+def aggregate_downtime_by_reason(acc, entry, duration):
+    if entry.running == False:
+        if entry.reason not in acc:
+            acc[entry.reason] = {"total_duration": 0, "count": 0}
+
+        acc[entry.reason]["total_duration"] += duration
+        acc[entry.reason]["count"] += 1
+
+
+def aggregate_downtime_by_category(acc, entry, duration):
+    if entry.running == False:
+        category = entry.reason.category if entry.reason else None
+        if category not in acc:
+            acc[category] = {"total_duration": 0, "count": 0}
+
+        acc[category]["total_duration"] += duration
+        acc[category]["count"] += 1
+
+
+def aggregate_downtime_by_machine_reason(acc, entry, duration):
+    if entry.target not in acc:
+        acc[entry.target] = {}
+
+    if entry.running == False:
+        # assign to machine-reason pairing
+        if entry.reason not in acc[entry.target]:
+            acc[entry.target][entry.reason] = {
+                "total_duration": 0,
+                "count": 0,
+            }
+
+        acc[entry.target][entry.reason]["total_duration"] += duration
+        acc[entry.target][entry.reason]["count"] += 1
+
+
+def aggregate_downtime_by_machine_category(acc, entry, duration):
+    if entry.target not in acc:
+        acc[entry.target] = {}
+
+    if entry.running == False:
+        category = entry.reason.category if entry.reason else None
+
+        # assign to machine-category pairing
+        if category not in acc[entry.target]:
+            acc[entry.target][category] = {
+                "total_duration": 0,
+                "count": 0,
+            }
+
+        acc[entry.target][category]["total_duration"] += duration
+        acc[entry.target][category]["count"] += 1
 
 
 @api_view(("GET",))
@@ -560,7 +736,7 @@ def windowed_downtime(request):
     start_dt = None
     if t_start:
         start_dt = dateutil.parser.isoparse(t_start)
-        q = q & Q(end__gte=start_dt) | Q(end__isnull=True)
+        q = q & (Q(end__gte=start_dt) | Q(end__isnull=True))
 
     end_dt = None
     if t_end:
@@ -631,7 +807,7 @@ def get_windowed_downtime(queryset, window_set):
                     **window_set[i],
                     "running": 0,
                     "stopped": 0,
-                    "count":0
+                    "count": 0,
                 }
             )
 
@@ -673,20 +849,19 @@ def get_windowed_downtime(queryset, window_set):
                 output[state_entry.target.pk][cursor]["count"] += 1
 
     output = [
-        {
-            **item,
-            "utilisation": (
-                0
-                if item["running"] == 0
-                else item["running"] / (item["running"] + item["stopped"])
-            ),
-        }
+        {**item, "utilisation": get_utilisation(item["running"],item["stopped"])}
         for value in output.values()
         for item in value
     ]
 
     return output
 
+def get_utilisation(running,stopped):
+    if running == 0:
+        if stopped == 0:
+            return None
+        return 0
+    return running / (running + stopped)
 
 def value_or_default_to_now(timestamp):
     if timestamp is not None:

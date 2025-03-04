@@ -3,7 +3,7 @@ services:
     stoppage-dc:
         extends:
             file: user_input/app.yml
-            service: dev
+            service: app
         networks:
             internal:
                 aliases:

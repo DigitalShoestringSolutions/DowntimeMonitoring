@@ -7,7 +7,7 @@ services:
             - /etc/localtime:/etc/localtime:ro
             - ./config/ui:/usr/share/nginx/html/config/
         ports:
-            - "8080:80"
+            - "80:80"
     dev:
         build: 
             context: .
@@ -20,4 +20,4 @@ services:
             - ./code/public:/app/public
             - ./config/ui:/app/public/config
         ports:
-            - "8080:80"
+            - "80:80"

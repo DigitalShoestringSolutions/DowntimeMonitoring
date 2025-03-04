@@ -7,13 +7,7 @@ from . import models
 class MachineSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Machine
-        fields = (
-            "id",
-            "name",
-            "manual_input",
-            "edit_manual_input",
-            "edit_sensor_input",
-        )
+        fields = "__all__"
 
 
 class StateSerializer(serializers.ModelSerializer):
@@ -89,8 +83,10 @@ class NestedStateSerialiser(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         output = super().to_representation(instance)
+        # remove filter to display ending event
         output["events_during"] = EventSerializer(
-            instance.events_during.order_by("-timestamp", "-event_id"), many=True
+            instance.events_during.filter(running__exact=instance.running).order_by("-timestamp", "-event_id"), many=True
         ).data
         output["trigger_event"] = EventSerializer(instance.trigger_event, many=False).data
         return output
+

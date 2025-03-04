@@ -13,6 +13,7 @@ urlpatterns = [
     path("by-state/<uuid:machine_id>", views.eventsForMachineByState),
     path("update/<int:event_id>", views.updateEvent),
     path("delete/<int:event_id>", views.deleteEvent),
+    path("add", views.addEvent),
 ]
 
 # /events/                           ?from=timestamp ?to=timestamp

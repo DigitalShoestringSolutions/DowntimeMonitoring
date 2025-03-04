@@ -5,17 +5,36 @@ import uuid
 class Machine(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.CharField(max_length=60)
-    manual_input = models.BooleanField(
+    
+    enable_manual_input = models.BooleanField(
         default=True,
         help_text="If set to true, the machines status can be set manually in the user interface",
     )
-    edit_manual_input = models.BooleanField(
-        default=True,
-        help_text="If set to true, users can edit or delete past events that were created manually",
-    )
-    edit_sensor_input = models.BooleanField(
+    enable_historic_manual_input = models.BooleanField(
         default=False,
-        help_text="If set to true, users can edit or delete past events that were created by sensor inputs",
+        help_text="If set to true, users can insert new downtime events into the history",
+    )
+
+    enable_edit_manual_input = models.BooleanField(
+        default=True,
+        help_text="If set to true, users can edit past events that were created manually",
+    )
+    enable_delete_manual_input = models.BooleanField(
+        default=True,
+        help_text="If set to true, users can delete past events that were created manually",
+    )
+
+    enable_edit_sensor_input = models.BooleanField(
+        default=False,
+        help_text="If set to true, users can edit past events that were created by sensor inputs",
+    )
+    enable_delete_sensor_input = models.BooleanField(
+        default=False,
+        help_text="If set to true, users can delete past events that were created by sensor inputs",
+    )
+    enable_historic_sensor_input = models.BooleanField(
+        default=False,
+        help_text="If set to true, sensor inputs with timestamps in the past (before the latest event) will be inserted, updating the history, if false they will be ignored",
     )
 
     def __str__(self):
@@ -50,7 +69,6 @@ class StatusEvent(models.Model):
 
     class Meta:
         verbose_name_plural = "Event Records"
-
 
 class State(models.Model):
     record_id = models.BigAutoField(primary_key=True)
