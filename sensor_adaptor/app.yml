@@ -1,0 +1,14 @@
+version: "2"
+
+services:
+  app:
+    build: .
+    volumes:
+      # - ./node_red_flows:/data:rw
+      - ./config:/config:ro
+      - ./projects:/data/projects:rw
+    ports:
+      - "1880:1880"
+    environment:
+      - CONFIG_FILE=/config/config.json
+    

@@ -1,0 +1,17 @@
+# Compiled and metadata file types
+__pycache__/
+*.DS_Store
+*.backup
+
+# Explicit exclusions
+**/data/*
+node_red_flows/node_modules/*
+node_red_flows/.npm/*
+node_red_flows/lib/*
+node_red_flows/package-lock.json
+node_red_flows/.sessions.json
+node_red_flows/.config.*
+!node_red_flows/.config.runtime.json
+
+# Explicit inclusions
+!**/.gitkeep

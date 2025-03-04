@@ -1,0 +1,12 @@
+{
+  "api": {
+    "host": null,
+    "port": 8001
+  },
+  "mqtt": {
+    "host": null,
+    "port": 9001,
+    "prefix": [
+    ]
+  }
+}

@@ -1,3 +1,0 @@
-cp -r /media/sf_PycharmProjects/state_model_sm/* ./code/
-chmod -R 775 ./code
-chown -R greg:greg ./code
