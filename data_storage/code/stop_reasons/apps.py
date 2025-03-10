@@ -12,7 +12,7 @@ class StopReasonsConfig(AppConfig):
 def create_defaults(sender, **kwargs):    
     from . import models
     if models.Reason.objects.all().count() == 0:
-        ndt_category = models.Category.objects.get_or_create(
+        ndt_category,_created = models.Category.objects.get_or_create(
             text="Not Downtime", defaults={"colour":models.CategoryColours.GREEN}
         )
         models.Category.objects.get_or_create(
