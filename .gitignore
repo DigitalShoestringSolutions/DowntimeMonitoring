@@ -3,3 +3,4 @@
 **__pycache__
 !**/.gitkeep
 **/django_secret_key
+**/default_password
