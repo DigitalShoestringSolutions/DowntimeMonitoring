@@ -14,3 +14,6 @@ This solution has 3 main pages:
 - Admin page - [http://localhost:8001/admin](http://localhost:8001/admin) on the device or http://\<ip\>:8001/admin from other devices (username: admin, password: admin) [Please change password from default]
  
 - Dashboard - [http://localhost:3000](http://localhost:3000) on the device or http://\<ip\>:3000 from other devices (username: admin, password: admin) [Please change password from default]
+
+## Sensor Input
+A Node-RED based module that can use data in MQTT messages to determine if a machine is running is provided. Read more in `sensor_adaptor/README.md`
