@@ -19,6 +19,14 @@ from . import serializers
 
 @api_view(("GET",))
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer))
+def listReasons(request):
+    qs = models.Reason.objects.filter(considered_downtime=True)
+    serializer = serializers.ReasonSerializer(qs, many=True)
+    return Response(serializer.data)
+
+
+@api_view(("GET",))
+@renderer_classes((JSONRenderer, BrowsableAPIRenderer))
 def getMachineReasons(request, machine_id):
     machine = state_models.Machine.objects.get(id=machine_id)
     reasons_qs = machine.reason_mapping.all()

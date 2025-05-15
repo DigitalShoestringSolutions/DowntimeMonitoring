@@ -92,7 +92,7 @@
                     "color": "rgba(255,0,255,0.7)"
                 },
                 "filterValues": {
-                    "le": 1e-9
+                    "le": -1
                 },
                 "legend": {
                     "show": true
@@ -504,7 +504,7 @@
             {
                 "allValue": "",
                 "current": {
-                    "selected": true,
+                    "selected": false,
                     "text": [
                         "All"
                     ],
@@ -588,6 +588,6 @@
     "timezone": "",
     "title": "Trends",
     "uid": "feebmgmsqkhkwc",
-    "version": 27,
+    "version": 31,
     "weekStart": ""
 }

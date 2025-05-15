@@ -28,7 +28,7 @@
     ],
     "mqtt": {
         "in": {
-            "broker": "10.247.55.251",
+            "broker": "mqtt.docker.local",
             "port": 1883
         },
         "out": {

@@ -18,21 +18,10 @@ urlpatterns = [
     # path("downtime", views.downtime),
     # path("downtime/<uuid:machine_id>", views.downtime),
     path("downtime/machine", views.get_downtime_by_machine),
-    path("downtime/machine/<uuid:machine_id>", views.get_downtime_by_machine),
     path("downtime/reasons", views.get_downtime_by_reason),
-    path("downtime/reasons/<uuid:machine_id>", views.get_downtime_by_reason),
     path("downtime/category", views.get_downtime_by_category),
-    path("downtime/category/<uuid:machine_id>", views.get_downtime_by_category),
     path("downtime/machine-reason", views.get_downtime_by_machine_reason),
-    path(
-        "downtime/machine-reason/<uuid:machine_id>",
-        views.get_downtime_by_machine_reason,
-    ),
     path("downtime/machine-category", views.get_downtime_by_machine_category),
-    path(
-        "downtime/machine-category/<uuid:machine_id>",
-        views.get_downtime_by_machine_category,
-    ),
     path("downtime/bucket", views.windowed_downtime),
 ]
 

@@ -120,6 +120,11 @@
                             "jsonPath": "$.[0].utilisation",
                             "language": "jsonpath",
                             "name": ""
+                        },
+                        {
+                            "jsonPath": "$.[0].count",
+                            "language": "jsonpath",
+                            "name": ""
                         }
                     ],
                     "method": "GET",
@@ -144,6 +149,7 @@
                     "id": "organize",
                     "options": {
                         "excludeByName": {
+                            "count": true,
                             "running": true,
                             "stopped": true
                         },
@@ -177,7 +183,20 @@
                     },
                     "unit": "dthms"
                 },
-                "overrides": []
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "count"
+                        },
+                        "properties": [
+                            {
+                                "id": "unit",
+                                "value": "none"
+                            }
+                        ]
+                    }
+                ]
             },
             "gridPos": {
                 "h": 8,
@@ -190,7 +209,7 @@
                 "colorMode": "none",
                 "graphMode": "area",
                 "justifyMode": "auto",
-                "orientation": "auto",
+                "orientation": "horizontal",
                 "reduceOptions": {
                     "calcs": [
                         "lastNotNull"
@@ -213,7 +232,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Total Time",
+            "title": "Totals",
             "transformations": [
                 {
                     "id": "organize",
@@ -227,7 +246,10 @@
                             "true": 0
                         },
                         "renameByName": {
+                            "count": "Number of stops",
                             "false": "Stopped",
+                            "running": "Time running",
+                            "stopped": "Time stopped",
                             "true": "Running"
                         }
                     }
@@ -648,6 +670,6 @@
     "timezone": "",
     "title": "Machine Dashboard",
     "uid": "AoRWg_H4z",
-    "version": 10,
+    "version": 14,
     "weekStart": ""
 }
