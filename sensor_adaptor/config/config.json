@@ -4,7 +4,8 @@
             "topic": "power_monitoring/Advanced_Test/A",
             "filter":{"phase":"A"},
             "metric": "current",
-            "threshold": 6,
+            "value": 6,
+            "comparison": "gte",
             "target": "4fa3bde4-bfb3-4ad5-b17b-bc4fed006077"
         },
         {
@@ -13,7 +14,8 @@
                 "phase": "B"
             },
             "metric": "current",
-            "threshold": 8,
+            "value": 8,
+            "comparison": "gte",
             "target": "4b7ce2ca-8d6b-4646-8fe1-6b090b97a8a7"
         },
         {
@@ -22,13 +24,14 @@
                 "phase": "C"
             },
             "metric": "current",
-            "threshold": 12,
+            "value": 12,
+            "comparison": "gte",
             "target": "e871cca0-5cc0-4674-9f89-2d18483f3300"
         }
     ],
     "mqtt": {
         "in": {
-            "broker": "10.247.55.251",
+            "broker": "mqtt.docker.local",
             "port": 1883
         },
         "out": {

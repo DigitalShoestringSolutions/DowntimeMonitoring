@@ -20,9 +20,22 @@ Each source is a connection between incoming MQTT messages and the running statu
 
 `topic` is the MQTT topic to subscribe to. This needs to match where the relevant sensor is pushing data.
 
-`filter` can be used to ignore mqtt messages that do not contain the specified key-value pairs in the JSON. This can be useful if data for multiple machines is being shared on the same topic etc.
+`filter` can be used to ignore mqtt messages that do not contain the specified key-value pairs in the JSON. This can be useful if data for multiple machines is being shared on the same topic etc. 
 
-`metric` is the JSON key for the data field that will be numerically compared. A simple comparison is done against the constant value set in `threshold`. If the value of `metric` in the sensor's MQTT message is greater than or equal to `threshold`, the machine is deemed to be running. If the value is below, it is stopped. 
+To disable the filter and process every message, leave it empty: `"filter": {},`
+
+`metric` is the JSON key for the data field that will be numerically compared. A simple comparison is done against the constant value set in `value`. The type type of comparison depends on the value set in `comparison`: 
+
+| `comparison` value | Meaning |
+|---|---|
+| `"gt"` | greater than |
+| `"gte"` | greater than or equal to |
+| `"lt"` | less than |
+| `"lte"` | greater than or equal to |
+| `"eq"` | equal to |
+| `"ne"` | not equal to |
+
+If the `metric` in the sensor's MQTT message passes the comparison to `value` (e.g. `metric` is greater than `value` when `comparison` is `"gt"`), the machine is deemed to be running. If the comparison fails, the machine is considered to be stopped. 
 
 `target` is the uuid (unique identifier) of the machine. This value can be found by logging into `localhost:8001/admin` and examining the machine list.
 
