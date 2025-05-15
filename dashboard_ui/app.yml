@@ -2,7 +2,7 @@ version: '2'
 
 services:
         app:
-                image: grafana/grafana-oss:10.4.0
+                image: grafana/grafana-oss:11.5.2
                 user: $CURRENT_UID
                 ports:
                     - '3000:3000'
@@ -16,3 +16,4 @@ services:
                     - GF_PATHS_CONFIG=/var/lib/grafana/grafana.ini
                     - GF_PATHS_DATA=/var/lib/grafana/data
                     - GF_PATHS_PROVISIONING=/var/lib/grafana/provisioning
+                    - GF_SECURITY_ALLOW_EMBEDDING=true 

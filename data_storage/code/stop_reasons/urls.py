@@ -10,5 +10,6 @@ def redirect_root(request):
 
 
 urlpatterns = [
+    path("list", views.listReasons),
     path("<uuid:machine_id>", views.getMachineReasons),
 ]

@@ -32,7 +32,7 @@ class PrettyStateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         context = self.context
-        if context["wrap"]:
+        if context.get("wrap"):
             if context["start"]:
                 if instance.start<context["start"]:
                     instance.start = context["start"]

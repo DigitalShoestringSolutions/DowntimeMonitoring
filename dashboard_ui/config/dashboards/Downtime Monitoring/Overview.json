@@ -24,7 +24,7 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 2,
+    "id": 4,
     "links": [
         {
             "asDropdown": true,
@@ -41,8 +41,131 @@
             "url": ""
         }
     ],
-    "liveNow": false,
     "panels": [
+        {
+            "datasource": {
+                "type": "marcusolsson-json-datasource",
+                "uid": "json_api"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [
+                        {
+                            "options": {
+                                "false": {
+                                    "color": "red",
+                                    "index": 1,
+                                    "text": "Stopped"
+                                },
+                                "true": {
+                                    "color": "green",
+                                    "index": 0,
+                                    "text": "Running"
+                                }
+                            },
+                            "type": "value"
+                        }
+                    ],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 5,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 13,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "/.*/",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value_and_name",
+                "wideLayout": true
+            },
+            "pluginVersion": "11.5.2",
+            "targets": [
+                {
+                    "cacheDurationSeconds": 5,
+                    "datasource": {
+                        "type": "marcusolsson-json-datasource",
+                        "uid": "json_api"
+                    },
+                    "fields": [
+                        {
+                            "jsonPath": "$[*].target"
+                        },
+                        {
+                            "jsonPath": "$[*].running",
+                            "language": "jsonpath",
+                            "name": ""
+                        }
+                    ],
+                    "method": "GET",
+                    "params": [
+                        [
+                            "pretty",
+                            "true"
+                        ]
+                    ],
+                    "queryParams": "",
+                    "refId": "A",
+                    "urlPath": "/state/"
+                }
+            ],
+            "title": "Machine Status",
+            "transformations": [
+                {
+                    "id": "sortBy",
+                    "options": {
+                        "fields": {},
+                        "sort": [
+                            {
+                                "field": "target"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": "rowsToFields",
+                    "options": {
+                        "mappings": [
+                            {
+                                "fieldName": "target",
+                                "handlerKey": "field.name"
+                            },
+                            {
+                                "fieldName": "running",
+                                "handlerKey": "field.value"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "type": "stat"
+        },
         {
             "datasource": {
                 "type": "marcusolsson-json-datasource",
@@ -81,7 +204,7 @@
                 "h": 10,
                 "w": 5,
                 "x": 0,
-                "y": 0
+                "y": 5
             },
             "id": 2,
             "options": {
@@ -99,7 +222,7 @@
                 "showThresholdMarkers": true,
                 "sizing": "auto"
             },
-            "pluginVersion": "10.4.0",
+            "pluginVersion": "11.5.2",
             "targets": [
                 {
                     "cacheDurationSeconds": 5,
@@ -167,6 +290,17 @@
                     }
                 },
                 {
+                    "id": "sortBy",
+                    "options": {
+                        "fields": {},
+                        "sort": [
+                            {
+                                "field": "machine"
+                            }
+                        ]
+                    }
+                },
+                {
                     "id": "rowsToFields",
                     "options": {}
                 }
@@ -208,7 +342,7 @@
                 "h": 10,
                 "w": 8,
                 "x": 5,
-                "y": 0
+                "y": 5
             },
             "id": 12,
             "options": {
@@ -224,7 +358,7 @@
                 "frameIndex": 1,
                 "showHeader": true
             },
-            "pluginVersion": "10.4.0",
+            "pluginVersion": "11.5.2",
             "targets": [
                 {
                     "datasource": {
@@ -247,6 +381,17 @@
                         "includeByName": {},
                         "indexByName": {},
                         "renameByName": {}
+                    }
+                },
+                {
+                    "id": "sortBy",
+                    "options": {
+                        "fields": {},
+                        "sort": [
+                            {
+                                "field": "machine"
+                            }
+                        ]
                     }
                 }
             ],
@@ -312,9 +457,9 @@
             },
             "gridPos": {
                 "h": 10,
-                "w": 10,
+                "w": 11,
                 "x": 13,
-                "y": 0
+                "y": 5
             },
             "id": 4,
             "options": {
@@ -328,10 +473,12 @@
                 "rowHeight": 0.9,
                 "showValue": "auto",
                 "tooltip": {
+                    "hideZeros": false,
                     "mode": "single",
                     "sort": "none"
                 }
             },
+            "pluginVersion": "11.5.2",
             "targets": [
                 {
                     "cacheDurationSeconds": 5,
@@ -339,7 +486,6 @@
                         "type": "marcusolsson-json-datasource",
                         "uid": "json_api"
                     },
-                    "experimentalGroupByField": "target",
                     "fields": [
                         {
                             "jsonPath": "$[*].start",
@@ -381,6 +527,31 @@
                 }
             ],
             "title": "Machine States",
+            "transformations": [
+                {
+                    "id": "sortBy",
+                    "options": {
+                        "fields": {},
+                        "sort": [
+                            {
+                                "field": "target"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": "partitionByValues",
+                    "options": {
+                        "fields": [
+                            "target"
+                        ],
+                        "keepFields": false,
+                        "naming": {
+                            "asLabels": false
+                        }
+                    }
+                }
+            ],
             "type": "state-timeline"
         },
         {
@@ -408,7 +579,7 @@
                 "h": 8,
                 "w": 4,
                 "x": 0,
-                "y": 10
+                "y": 15
             },
             "id": 6,
             "options": {
@@ -429,11 +600,12 @@
                     "values": false
                 },
                 "tooltip": {
+                    "hideZeros": false,
                     "mode": "single",
                     "sort": "none"
                 }
             },
-            "pluginVersion": "9.1.1",
+            "pluginVersion": "11.5.2",
             "targets": [
                 {
                     "datasource": {
@@ -501,7 +673,7 @@
                 "h": 8,
                 "w": 4,
                 "x": 4,
-                "y": 10
+                "y": 15
             },
             "id": 8,
             "options": {
@@ -522,11 +694,12 @@
                     "values": false
                 },
                 "tooltip": {
+                    "hideZeros": false,
                     "mode": "single",
                     "sort": "none"
                 }
             },
-            "pluginVersion": "9.1.1",
+            "pluginVersion": "11.5.2",
             "targets": [
                 {
                     "cacheDurationSeconds": 300,
@@ -633,9 +806,9 @@
             },
             "gridPos": {
                 "h": 8,
-                "w": 15,
+                "w": 16,
                 "x": 8,
-                "y": 10
+                "y": 15
             },
             "id": 10,
             "options": {
@@ -653,13 +826,14 @@
                 "showValue": "auto",
                 "stacking": "none",
                 "tooltip": {
+                    "hideZeros": false,
                     "mode": "single",
                     "sort": "none"
                 },
                 "xTickLabelRotation": 0,
                 "xTickLabelSpacing": 0
             },
-            "pluginVersion": "10.4.0",
+            "pluginVersion": "11.5.2",
             "targets": [
                 {
                     "cacheDurationSeconds": 0,
@@ -703,7 +877,7 @@
                     "urlPath": "/state/downtime/machine-category"
                 }
             ],
-            "title": "Fault Times - by Category",
+            "title": "Time spent stopped - by Category",
             "transformations": [
                 {
                     "id": "groupingToMatrix",
@@ -717,9 +891,9 @@
             "type": "barchart"
         }
     ],
+    "preload": false,
     "refresh": "1m",
-    "revision": 1,
-    "schemaVersion": 39,
+    "schemaVersion": 40,
     "tags": [
         "downtime"
     ],
@@ -727,13 +901,13 @@
         "list": []
     },
     "time": {
-        "from": "now-1d",
+        "from": "now-7d",
         "to": "now"
     },
     "timepicker": {},
-    "timezone": "",
+    "timezone": "Europe/London",
     "title": "Overview Dashboard",
     "uid": "w_PlcrN4z",
-    "version": 12,
+    "version": 5,
     "weekStart": ""
 }

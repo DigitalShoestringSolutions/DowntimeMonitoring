@@ -34,7 +34,7 @@ from functools import lru_cache
 from state_model.state_model import (
     make_update_state_mqtt_message,
     make_delete_state_mqtt_message,
-    make_new_state_mqtt_message
+    make_new_state_mqtt_message,
 )
 
 context = zmq.Context()
@@ -158,7 +158,7 @@ def updateEvent(request, event_id):
 
     event.save()
 
-    #mqtt updates
+    # mqtt updates
     zmq_conf = settings.ZMQ_CONFIG["state_out"]
     socket = context.socket(zmq_conf["type"])
     socket.connect(zmq_conf["address"])
@@ -181,7 +181,9 @@ def deleteEvent(request, event_id):
 
     # permissions
     machine = event.target
-    if (not machine.enable_delete_manual_input and event.source == EventSource.USER) or (
+    if (
+        not machine.enable_delete_manual_input and event.source == EventSource.USER
+    ) or (
         not machine.enable_delete_sensor_input and event.source == EventSource.SENSOR
     ):
         return Response(
@@ -262,7 +264,9 @@ def deleteEvent(request, event_id):
                         next_next_state.previous_entry = prior_state
 
                     next_state.events_during.update(occured_during=prior_state)
-                    deleted_state_messages.append(make_delete_state_mqtt_message(next_state))
+                    deleted_state_messages.append(
+                        make_delete_state_mqtt_message(next_state)
+                    )
                     next_state.delete()
                 elif prior_state and next_state is None:  # Case 5
                     prior_state.end = None
@@ -275,7 +279,9 @@ def deleteEvent(request, event_id):
                     caused_state.events_during.update(occured_during=prior_state)
                     prior_state.save()
 
-                deleted_state_messages.append(make_delete_state_mqtt_message(caused_state))
+                deleted_state_messages.append(
+                    make_delete_state_mqtt_message(caused_state)
+                )
                 caused_state.delete()  # all cases
 
                 if (
@@ -308,21 +314,23 @@ def addEvent(request):
     machine_id = request.data["machine"]
     running = request.data["running"]
     timestamp = dateutil.parser.isoparse(request.data["timestamp"])
-    source = request.data.get("source",EventSource.USER)
+    source = request.data.get("source", EventSource.USER)
 
     try:
-        new_states, updated_states = state_model.new_event(machine_id,running,timestamp,source)
+        new_states, updated_states = state_model.new_event(
+            machine_id, running, timestamp, source
+        )
     except Machine.DoesNotExist:
-        return Response({"error":"not_found","reason":f"Machine not found"},status=400)
+        return Response(
+            {"error": "not_found", "reason": f"Machine not found"}, status=400
+        )
 
     # mqtt updates
     zmq_conf = settings.ZMQ_CONFIG["state_out"]
     socket = context.socket(zmq_conf["type"])
     socket.connect(zmq_conf["address"])
 
-    output = [
-                make_new_state_mqtt_message(new_state) for new_state in new_states
-            ]
+    output = [make_new_state_mqtt_message(new_state) for new_state in new_states]
     output.extend(
         [
             make_update_state_mqtt_message(updated_state)
@@ -331,19 +339,23 @@ def addEvent(request):
     )
 
     print(output)
-    
+
     for msg in output:
         socket.send_json(msg)
 
     return Response(status=201)
 
+
 @api_view(("GET",))
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
 def snapshot(request, machine_id=None):
     at = request.GET.get("t", None)
+    pretty = request.GET.get("pretty", False)
     page = int(request.GET.get("page", 0))
     page_length = request.GET.get("page-length", None)
     q = Q(end__isnull=True)
+
+    serializer_class = PrettyStateSerializer if pretty == "true" else StateSerializer
 
     if at:
         at_dt = dateutil.parser.isoparse(at)  # parse "at" to datetime
@@ -360,9 +372,9 @@ def snapshot(request, machine_id=None):
             qs_slice = paginator.page(page if page > 0 else 1)
         except:
             qs_slice = []
-        serializer = StateSerializer(qs_slice, many=True)
+        serializer = serializer_class(qs_slice, many=True)
     else:
-        serializer = StateSerializer(qs, many=True)
+        serializer = serializer_class(qs, many=True)
     return Response(serializer.data)
 
 
@@ -377,6 +389,7 @@ def history(request, machine_id=None):
     page = int(request.GET.get("page", 0))
     page_length = request.GET.get("page-length", None)
     duration_str = request.GET.get("duration", None)
+    reason = request.GET.get("reason", None)
 
     q = Q()
 
@@ -397,6 +410,9 @@ def history(request, machine_id=None):
 
     if machine_id:
         q = q & Q(target__id__exact=machine_id)
+
+    if reason:
+        q = q & Q(reason=reason)
 
     if duration_str:
         try:
@@ -496,12 +512,13 @@ def eventsForMachineByState(request, machine_id):
 
 @api_view(("GET",))
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
-def get_downtime_by_machine(request, machine_id=None):
+def get_downtime_by_machine(request):
     t_query_from = request.GET.get("from", None)
     t_query_to = request.GET.get("to", None)
+    machine_id = request.GET.get("machine", None)
 
     results = do_get_downtime(
-        t_query_from, t_query_to, machine_id, aggregate_downtime_by_machine
+        aggregate_downtime_by_machine, t_query_from, t_query_to, machine_id
     )
 
     output = [
@@ -522,12 +539,13 @@ def get_downtime_by_machine(request, machine_id=None):
 
 @api_view(("GET",))
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
-def get_downtime_by_reason(request, machine_id=None):
+def get_downtime_by_reason(request):
     t_query_from = request.GET.get("from", None)
     t_query_to = request.GET.get("to", None)
+    machine_id = request.GET.get("machine", None)
 
     results = do_get_downtime(
-        t_query_from, t_query_to, machine_id, aggregate_downtime_by_reason
+        aggregate_downtime_by_reason, t_query_from, t_query_to, machine_id
     )
 
     output = [
@@ -540,12 +558,13 @@ def get_downtime_by_reason(request, machine_id=None):
 
 @api_view(("GET",))
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
-def get_downtime_by_category(request, machine_id=None):
+def get_downtime_by_category(request):
     t_query_from = request.GET.get("from", None)
     t_query_to = request.GET.get("to", None)
+    machine_id = request.GET.get("machine", None)
 
     results = do_get_downtime(
-        t_query_from, t_query_to, machine_id, aggregate_downtime_by_category
+        aggregate_downtime_by_category, t_query_from, t_query_to, machine_id
     )
 
     output = [
@@ -561,12 +580,18 @@ def get_downtime_by_category(request, machine_id=None):
 
 @api_view(("GET",))
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
-def get_downtime_by_machine_reason(request, machine_id=None):
+def get_downtime_by_machine_reason(request):
     t_query_from = request.GET.get("from", None)
     t_query_to = request.GET.get("to", None)
+    machine_id = request.GET.get("machine", None)
+    reason = request.GET.get("reason", None)
 
     results = do_get_downtime(
-        t_query_from, t_query_to, machine_id, aggregate_downtime_by_machine_reason
+        aggregate_downtime_by_machine_reason,
+        t_query_from,
+        t_query_to,
+        machine_id,
+        reason,
     )
 
     output = [
@@ -584,12 +609,13 @@ def get_downtime_by_machine_reason(request, machine_id=None):
 
 @api_view(("GET",))
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer, CSVRenderer))
-def get_downtime_by_machine_category(request, machine_id=None):
+def get_downtime_by_machine_category(request):
     t_query_from = request.GET.get("from", None)
     t_query_to = request.GET.get("to", None)
+    machine_id = request.GET.get("machine", None)
 
     results = do_get_downtime(
-        t_query_from, t_query_to, machine_id, aggregate_downtime_by_machine_category
+        aggregate_downtime_by_machine_category, t_query_from, t_query_to, machine_id
     )
 
     output = [
@@ -605,7 +631,9 @@ def get_downtime_by_machine_category(request, machine_id=None):
     return Response(output)
 
 
-def do_get_downtime(t_query_from, t_query_to, machine_id, accumulation_function):
+def do_get_downtime(
+    accumulation_function, t_query_from, t_query_to, machine_id, reason=None
+):
 
     q = ~Q(reason__considered_downtime=False)
 
@@ -621,6 +649,9 @@ def do_get_downtime(t_query_from, t_query_to, machine_id, accumulation_function)
 
     if machine_id:
         q = q & Q(target__id__exact=machine_id)
+
+    if reason:
+        q = q & Q(reason=reason)
 
     print(q)
     qs = (
@@ -849,19 +880,21 @@ def get_windowed_downtime(queryset, window_set):
                 output[state_entry.target.pk][cursor]["count"] += 1
 
     output = [
-        {**item, "utilisation": get_utilisation(item["running"],item["stopped"])}
+        {**item, "utilisation": get_utilisation(item["running"], item["stopped"])}
         for value in output.values()
         for item in value
     ]
 
     return output
 
-def get_utilisation(running,stopped):
+
+def get_utilisation(running, stopped):
     if running == 0:
         if stopped == 0:
             return None
         return 0
     return running / (running + stopped)
+
 
 def value_or_default_to_now(timestamp):
     if timestamp is not None:
