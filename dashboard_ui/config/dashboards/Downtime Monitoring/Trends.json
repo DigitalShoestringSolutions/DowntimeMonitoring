@@ -1,0 +1,593 @@
+{
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
+                },
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "target": {
+                    "limit": 100,
+                    "matchAny": false,
+                    "tags": [],
+                    "type": "dashboard"
+                },
+                "type": "dashboard"
+            }
+        ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 6,
+    "links": [
+        {
+            "asDropdown": true,
+            "icon": "external link",
+            "includeVars": true,
+            "keepTime": true,
+            "tags": [
+                "downtime"
+            ],
+            "targetBlank": false,
+            "title": "Dashboards",
+            "tooltip": "",
+            "type": "dashboards",
+            "url": ""
+        }
+    ],
+    "liveNow": false,
+    "panels": [
+        {
+            "datasource": {
+                "type": "datasource",
+                "uid": "-- Dashboard --"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "scaleDistribution": {
+                            "type": "linear"
+                        }
+                    },
+                    "fieldMinMax": false
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 9,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 7,
+            "options": {
+                "calculate": false,
+                "cellGap": 1,
+                "cellValues": {
+                    "unit": "percentunit"
+                },
+                "color": {
+                    "exponent": 0.5,
+                    "fill": "dark-orange",
+                    "max": 1,
+                    "min": 0,
+                    "mode": "scheme",
+                    "reverse": true,
+                    "scale": "exponential",
+                    "scheme": "RdYlGn",
+                    "steps": 64
+                },
+                "exemplars": {
+                    "color": "rgba(255,0,255,0.7)"
+                },
+                "filterValues": {
+                    "le": -1
+                },
+                "legend": {
+                    "show": true
+                },
+                "rowsFrame": {
+                    "layout": "auto",
+                    "value": "Utilisation"
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "showColorScale": false,
+                    "yHistogram": false
+                },
+                "yAxis": {
+                    "axisPlacement": "left",
+                    "reverse": false
+                }
+            },
+            "pluginVersion": "10.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "datasource",
+                        "uid": "-- Dashboard --"
+                    },
+                    "panelId": 6,
+                    "refId": "A",
+                    "withTransforms": false
+                }
+            ],
+            "title": "Utilisation",
+            "transformations": [
+                {
+                    "id": "filterByValue",
+                    "options": {
+                        "filters": [
+                            {
+                                "config": {
+                                    "id": "isNull",
+                                    "options": {}
+                                },
+                                "fieldName": "utilisation"
+                            }
+                        ],
+                        "match": "any",
+                        "type": "exclude"
+                    }
+                },
+                {
+                    "id": "partitionByValues",
+                    "options": {
+                        "fields": [
+                            "machine",
+                            "name"
+                        ],
+                        "keepFields": false,
+                        "naming": {
+                            "asLabels": true
+                        }
+                    }
+                },
+                {
+                    "id": "renameByRegex",
+                    "options": {
+                        "regex": ".*name=\"(.*)\".*",
+                        "renamePattern": "$1"
+                    }
+                }
+            ],
+            "type": "heatmap"
+        },
+        {
+            "datasource": {
+                "type": "marcusolsson-json-datasource",
+                "uid": "json_api"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 0,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "stepBefore",
+                        "lineStyle": {
+                            "fill": "solid"
+                        },
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "auto",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "area"
+                        }
+                    },
+                    "mappings": [],
+                    "max": 1,
+                    "min": 0,
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "red",
+                                "value": null
+                            },
+                            {
+                                "color": "orange",
+                                "value": 0.9
+                            },
+                            {
+                                "color": "green",
+                                "value": 0.95
+                            }
+                        ]
+                    },
+                    "unit": "percentunit"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 9,
+                "w": 23,
+                "x": 1,
+                "y": 9
+            },
+            "id": 6,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "10.4.0",
+            "targets": [
+                {
+                    "cacheDurationSeconds": 300,
+                    "datasource": {
+                        "type": "marcusolsson-json-datasource",
+                        "uid": "json_api"
+                    },
+                    "fields": [
+                        {
+                            "jsonPath": "$.[*].machine",
+                            "name": "machine",
+                            "type": "string"
+                        },
+                        {
+                            "jsonPath": "$.[*].name",
+                            "language": "jsonpath",
+                            "name": ""
+                        },
+                        {
+                            "jsonPath": "$.[*].end",
+                            "language": "jsonpath",
+                            "name": "",
+                            "type": "time"
+                        },
+                        {
+                            "jsonPath": "$.[*].utilisation",
+                            "language": "jsonpath",
+                            "name": "",
+                            "type": "number"
+                        }
+                    ],
+                    "method": "GET",
+                    "params": [
+                        [
+                            "from",
+                            "${__from:date:iso}"
+                        ],
+                        [
+                            "to",
+                            "${__to:date:iso}"
+                        ],
+                        [
+                            "bucket",
+                            "${bucket}"
+                        ],
+                        [
+                            "machines",
+                            "${machines:json}"
+                        ]
+                    ],
+                    "queryParams": "",
+                    "refId": "A",
+                    "urlPath": "/state/downtime/bucket"
+                }
+            ],
+            "title": "Utilisation",
+            "transformations": [
+                {
+                    "id": "partitionByValues",
+                    "options": {
+                        "fields": [
+                            "machine",
+                            "name"
+                        ],
+                        "keepFields": false,
+                        "naming": {
+                            "asLabels": true
+                        }
+                    }
+                },
+                {
+                    "id": "renameByRegex",
+                    "options": {
+                        "regex": ".*name=\"(.*)\".*",
+                        "renamePattern": "$1"
+                    }
+                }
+            ],
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "marcusolsson-json-datasource",
+                "uid": "json_api"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 0,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "stepBefore",
+                        "lineStyle": {
+                            "fill": "solid"
+                        },
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "auto",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "percentage",
+                        "steps": [
+                            {
+                                "color": "transparent",
+                                "value": null
+                            }
+                        ]
+                    },
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 9,
+                "w": 23,
+                "x": 1,
+                "y": 18
+            },
+            "id": 8,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "desc"
+                }
+            },
+            "pluginVersion": "10.4.0",
+            "targets": [
+                {
+                    "cacheDurationSeconds": 300,
+                    "datasource": {
+                        "type": "marcusolsson-json-datasource",
+                        "uid": "json_api"
+                    },
+                    "fields": [
+                        {
+                            "jsonPath": "$.[*].machine",
+                            "name": "machine",
+                            "type": "string"
+                        },
+                        {
+                            "jsonPath": "$.[*].name",
+                            "language": "jsonpath",
+                            "name": ""
+                        },
+                        {
+                            "jsonPath": "$.[*].end",
+                            "language": "jsonpath",
+                            "name": "",
+                            "type": "time"
+                        },
+                        {
+                            "jsonPath": "$.[*].count",
+                            "language": "jsonpath",
+                            "name": ""
+                        }
+                    ],
+                    "method": "GET",
+                    "params": [
+                        [
+                            "from",
+                            "${__from:date:iso}"
+                        ],
+                        [
+                            "to",
+                            "${__to:date:iso}"
+                        ],
+                        [
+                            "bucket",
+                            "${bucket}"
+                        ],
+                        [
+                            "machines",
+                            "${machines:json}"
+                        ]
+                    ],
+                    "queryParams": "",
+                    "refId": "A",
+                    "urlPath": "/state/downtime/bucket"
+                }
+            ],
+            "title": "Stop Count",
+            "transformations": [
+                {
+                    "id": "partitionByValues",
+                    "options": {
+                        "fields": [
+                            "machine",
+                            "name"
+                        ],
+                        "keepFields": false,
+                        "naming": {
+                            "asLabels": true
+                        }
+                    }
+                },
+                {
+                    "id": "renameByRegex",
+                    "options": {
+                        "regex": ".*name=\"(.*)\".*",
+                        "renamePattern": "$1"
+                    }
+                }
+            ],
+            "type": "timeseries"
+        }
+    ],
+    "refresh": "1m",
+    "revision": 1,
+    "schemaVersion": 39,
+    "tags": [
+        "downtime"
+    ],
+    "templating": {
+        "list": [
+            {
+                "allValue": "",
+                "current": {
+                    "selected": false,
+                    "text": [
+                        "All"
+                    ],
+                    "value": [
+                        "$__all"
+                    ]
+                },
+                "datasource": {
+                    "type": "marcusolsson-json-datasource",
+                    "uid": "json_api"
+                },
+                "definition": "$[*].id",
+                "hide": 0,
+                "includeAll": true,
+                "label": "Machines",
+                "multi": true,
+                "name": "machines",
+                "options": [],
+                "query": {
+                    "cacheDurationSeconds": 300,
+                    "experimentalVariableTextField": "name",
+                    "experimentalVariableValueField": "id",
+                    "fields": [
+                        {
+                            "jsonPath": "$[*].id",
+                            "name": "id",
+                            "type": "string"
+                        },
+                        {
+                            "jsonPath": "$[*].name",
+                            "language": "jsonpath",
+                            "name": "name",
+                            "type": "string"
+                        }
+                    ],
+                    "method": "GET",
+                    "queryParams": "",
+                    "urlPath": "/machines/"
+                },
+                "refresh": 1,
+                "regex": "",
+                "skipUrlSync": false,
+                "sort": 0,
+                "type": "query"
+            },
+            {
+                "current": {
+                    "selected": false,
+                    "text": "Hour",
+                    "value": "hour"
+                },
+                "hide": 0,
+                "includeAll": false,
+                "label": "Time Bucket",
+                "multi": false,
+                "name": "bucket",
+                "options": [
+                    {
+                        "selected": true,
+                        "text": "Hour",
+                        "value": "hour"
+                    },
+                    {
+                        "selected": false,
+                        "text": "Day",
+                        "value": "day"
+                    }
+                ],
+                "query": "Hour : hour,Day : day",
+                "queryValue": "",
+                "skipUrlSync": false,
+                "type": "custom"
+            }
+        ]
+    },
+    "time": {
+        "from": "now-7d",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Trends",
+    "uid": "feebmgmsqkhkwc",
+    "version": 31,
+    "weekStart": ""
+}

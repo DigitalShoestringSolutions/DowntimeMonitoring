@@ -1,0 +1,10 @@
+apiVersion: 1
+
+datasources:
+  - name: Data Storage Module
+    type: marcusolsson-json-datasource
+    version: 1
+    editable: true
+    access: proxy
+    url: http://data-storage.docker.local:80
+    uid: json_api

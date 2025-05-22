@@ -1,0 +1,23 @@
+version: '2'
+
+services:
+    app:
+        build: .
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - ./config/ui:/usr/share/nginx/html/config/
+        ports:
+            - "80:80"
+    dev:
+        build: 
+            context: .
+            dockerfile: Dockerfile_dev
+        working_dir: /app
+        command: sh -c "npm run dev"
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - ./code/src:/app/src
+            - ./code/public:/app/public
+            - ./config/ui:/app/public/config
+        ports:
+            - "80:80"
