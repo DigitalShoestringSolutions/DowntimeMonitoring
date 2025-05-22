@@ -581,7 +581,7 @@
         "type": "function",
         "z": "6d5c58c09b2db392",
         "name": "Compare Threshold",
-        "func": "let payload = msg.payload\nlet sources = global.get(\"config.sources\")\n\nlet source = sources.find(source => {\n    let found = true\n    Object.keys(source.filter).forEach(entry => {\n        if(payload[entry]!==source.filter[entry])\n            found = false\n    })\n\n    return found\n})\n\nnode.log(\"source:\" + source)\n\nmsg.payload.running = payload[source.metric] >= source.threshold\nmsg.payload.machine = source.target\n\nreturn msg;",
+        "func": "let payload = msg.payload\nlet sources = global.get(\"config.sources\")\n\nlet source = sources.find(source => {\n    let found = true\n    Object.keys(source.filter).forEach(entry => {\n        if(payload[entry]!==source.filter[entry])\n            found = false\n    })\n\n    return found\n})\n\nconst comparison_functions = {\n    gt: (a,b) => a > b,\n    gte: (a, b) => a >= b,\n    lt: (a, b) => a < b,\n    lte: (a, b) => a <= b,\n    eq: (a, b) => a === b,\n    ne: (a, b) => a != b,\n}\n\nnode.log(\"source:\" + source)\n\nlet comp_func = comparison_functions[source.comparison] ?? comparison_functions.gte\n\nmsg.payload.running = comp_func(payload[source.metric],source.value)\nmsg.payload.machine = source.target\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
