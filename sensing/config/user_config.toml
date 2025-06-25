@@ -1,7 +1,9 @@
 #   Select the config file (by removing the leading #) appropriate for your hardware and wiring setup
 #
-module_config_file = "./config/ddowntime.toml"
+device.gpio_0.class = "Sequent16DigitalInputs"
+#device.gpio_0.class = "Sequent8DigitalInputs"
 
+device.gpio_0.config.gpio_channel = 1
 
 #   Set the machine name
 calculation.machine_name.config.machine = "Machine_Name_Here"
