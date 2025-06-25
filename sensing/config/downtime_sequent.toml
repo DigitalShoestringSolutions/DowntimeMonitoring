@@ -12,7 +12,7 @@
     interface="i2c0"
 [device.gpio_0.config]
     gpio_channel=1
-[device.adc_0.variables]
+[device.gpio_0.variables]
     dig_in = "running_light"
 
 #=-= Define Calculation Modules =-=
