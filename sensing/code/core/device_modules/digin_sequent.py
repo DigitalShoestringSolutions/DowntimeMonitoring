@@ -10,7 +10,8 @@ Public API: all public methods of Sequent16inputsHAT and Sequent8inputsHAT
 ## -- Imports ---------------------------------------------------------------------
 
 # Standard imports
-#none
+import traceback
+import logging
 
 # Installed inports
 import smbus2
@@ -19,6 +20,9 @@ import smbus2
 #none
 
 ## --------------------------------------------------------------------------------
+
+
+logger = logging.getLogger(__name__)
 
 
 class Sequent16DigitalInputs:
@@ -70,9 +74,13 @@ class Sequent16DigitalInputs:
         """Report the status of single channel.
         Returns a dictionary with single entry key variables['dig_in'] and the value is the status of self.channel
         """
+        try:
+            status = self.read_single_channel(self.channel)
+            return {self.input_variable: status}
 
-        status = self.read_single_channel(self.channel)
-        return {self.input_variable: status}
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            raise e
 
 
     def _extract_channel(self, status_reg, channel) -> int:
