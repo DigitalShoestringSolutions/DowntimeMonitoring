@@ -1,0 +1,4 @@
+# Global requirements for the Sensing Service Module
+# Solution or sensor specific requirements go in config/requirements.txt
+
+paho-mqtt==2.1.0 # MQTT client for publishing

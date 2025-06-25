@@ -77,6 +77,9 @@ services:
                 tag: docker-sensor-adaptor
         restart: unless-stopped       
 
+include:
+    - sensing/docker-compose.yml
+
 networks:
     internal:
       name: shoestring-internal

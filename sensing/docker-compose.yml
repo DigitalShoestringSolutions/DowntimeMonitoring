@@ -1,0 +1,14 @@
+services:
+    sensing:
+        build: .
+        privileged: true
+        networks:
+            internal:
+                aliases:
+                    - sensing.docker.local
+        logging:
+            driver: syslog
+            options:
+                tag: docker-sensing
+        restart: unless-stopped
+        # No dependence on mqtt_broker, in case the sensing MQTT client targets a broker on another device.
