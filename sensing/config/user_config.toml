@@ -1,9 +1,12 @@
-#   Select the config file (by removing the leading #) appropriate for your hardware and wiring setup
-#
+# Load the base config for Downtime Monitoring with a Seuqnet Microsystems digital inputs HAT
+module_config_file = "./config/downtime_sequent.toml"
+
+#   Select the hardware variant (by removing the leading #) you are using 
 device.gpio_0.class = "Sequent16DigitalInputs"
 #device.gpio_0.class = "Sequent8DigitalInputs"
 
+# Set which channel the machine's running light is connected to
 device.gpio_0.config.gpio_channel = 1
 
-#   Set the machine name
+#   Set the name of the machine being monitored 
 calculation.machine_name.config.machine = "Machine_Name_Here"
