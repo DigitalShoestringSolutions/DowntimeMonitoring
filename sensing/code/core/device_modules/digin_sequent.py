@@ -14,7 +14,7 @@ import traceback
 import logging
 
 # Installed inports
-import smbus2
+#none
 
 # Local imports
 #none
@@ -62,7 +62,6 @@ class Sequent16DigitalInputs:
         self.i2c_address = config.get('i2c_address', 0x27)
 
         self.i2c = None
-        self.channel_mask = 0b111
         self.input_variable = variables['dig_in']
 
 
