@@ -25,7 +25,7 @@
 
 #=-= Define Calculation Pipelines =-=
 [pipelines]
-    running_status = ["running_light","machine_name"]
+    running_status = ["machine_name"]
 
 #=-= Define Measurements Pipelines =-=
 [measurement]
@@ -43,9 +43,8 @@
     topic = "power_monitoring/{{machine}}/{{phase}}"
 [output.overall.message_spec]
     timestamp = '$.timestamp'
-    current = "$.current_rms"
-    phase = "$.phase"
-    machine="$.machine"
+    running = '$.running_light'
+    machine = '$.machine'
 
 
 [mqtt]
