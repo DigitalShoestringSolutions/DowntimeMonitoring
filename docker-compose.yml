@@ -77,18 +77,18 @@ services:
                 tag: docker-sensor-adaptor
         restart: unless-stopped       
 
-    current-sensing:
+    sensing:
         extends:
-            file: current_sensing/app.yml
+            file: sensing/app.yml
             service: app
         networks:
             internal:
                 aliases:
-                    - current-sensing.docker.local
+                    - sensing.docker.local
         logging:
             driver: syslog
             options:
-                tag: docker-current-sensing
+                tag: docker-sensing
         restart: unless-stopped
         depends_on:
             - "mqtt_broker"
