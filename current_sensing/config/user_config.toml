@@ -1,0 +1,50 @@
+#   Select the config file (by removing the leading #) appropriate for your hardware and wiring setup
+#
+#   Basic:
+#module_config_file = "./config/pm_b_1p_ads1115.toml"           # Single phase with ADS1115 ADC
+#module_config_file = "./config/pm_b_1p_bc_robotics.toml"       # Single phase with BC Robotics ADC
+#module_config_file = "./config/pm_b_1p_grove_v1.0.toml"        # Single phase with Grove ADC v1.0
+#module_config_file = "./config/pm_b_1p_grove_v1.1.toml"        # Single phase with Grove ADC v1.1
+#module_config_file = "./config/pm_b_1p_sequent.toml"           # Single phase with Sequent 16 channel Universal Inputs ADC
+#module_config_file = "./config/pm_b_3pb_ads1115.toml"          # Three phase balanced (single clamp) with ADS1115 ADC
+#module_config_file = "./config/pm_b_3pb_bc_robotics.toml"      # Three phase balanced (single clamp) with BC Robotics ADC
+#module_config_file = "./config/pm_b_3pb_grove_v1.0.toml"       # Three phase balanced (single clamp) with Grove ADC v1.0
+#module_config_file = "./config/pm_b_3pb_grove_v1.1.toml"       # Three phase balanced (single clamp) with Grove ADC v1.1
+#module_config_file = "./config/pm_b_3pb_sequent.toml"          # Three phase balanced (single clamp) with Sequent 16 channel Universal Inputs ADC
+#module_config_file = "./config/pm_b_3pu_ads1115.toml"          # Three phase unbalanced (Three clamps) with ADS1115 ADC
+#module_config_file = "./config/pm_b_3pu_bc_robotics.toml"      # Three phase unbalanced (Three clamps) with BC Robotics ADC
+#module_config_file = "./config/pm_b_3pu_grove_v1.0.toml"       # Three phase unbalanced (Three clamps) with Grove ADC v1.0
+#module_config_file = "./config/pm_b_3pu_grove_v1.1.toml"       # Three phase unbalanced (Three clamps) with Grove ADC v1.1
+#module_config_file = "./config/pm_b_3pu_sequent.toml"          # Three phase unbalanced (Three clamps) with Sequent 16 channel Universal Inputs ADC
+#module_config_file = "./config/pm_dc_gravity_ads1115.toml"     # Gravity DC current sensor connected to ADS1115 ADC
+#module_config_file = "./config/pm_dc_gravity_bc_robotics.toml" # Gravity DC current sensor connected to BC Robotics ADC
+#module_config_file = "./config/pm_dc_gravity_grove_v1.0.toml"  # Gravity DC current sensor connected to Grove ADC v1.0
+#module_config_file = "./config/pm_dc_gravity_grove_v1.1.toml"  # Gravity DC current sensor connected to Grove ADC v1.1
+#
+#   Intermediate:
+#module_config_file = "./config/pm_i_1p.toml"                   # Single phase
+#module_config_file = "./config/pm_i_3p.toml"                   # Three phase
+#
+#   Advanced (inc. voltage monitoring):
+#module_config_file = "./config/pm_a_1p.toml"                   # Single phase
+#module_config_file = "./config/pm_a_3p.toml"                   # Three phase
+#
+#   Simulator for testing without sensing hardware:
+module_config_file = "./config/pm_b_3pu_mock.toml"              # Basic three phase unbalanced simulator
+
+
+#   Set the machine name
+calculation.machine_name.config.machine = "Machine_Name_Here"
+
+
+#   If using Basic AC hardware, set the ratio of the current transformer clamps (written on the clamp).
+#   For Intermediate and Advanced hardware this is the current in that produces 5A out
+#   and needs to be set on the multifunction Meter - leave commented out here.
+#calculation.current_clamp.config.nominal_current = 50          # Amps for 1V output
+
+
+#   If using Basic hardware, set which ADC channels the clamp(s) are plugged into.
+#   If using Intermediate or Advanced hardware, leave all these commented out.
+#device.adc_0.config.adc_channel = 0
+#device.adc_1.config.adc_channel = 2                            # If using multiple clamps
+#device.adc_2.config.adc_channel = 4                            # If using multiple clamps

@@ -1,0 +1,109 @@
+#=-= Define Interface Modules =-=
+[interface.i2c0]
+    module="i2c"
+    class="I2C"
+[interface.i2c0.config]
+    bus=1
+
+#=-= Define Device Modules =-=
+[device.adc_0]
+    module="adc_grove"
+    class="PiHat"
+    interface="i2c0"
+[device.adc_0.config]
+    adc_channel=0
+    i2c_address = 0x04
+[device.adc_0.variables]
+    v_in = "v_amp_out"
+
+#=-= Define Calculation Modules =-=
+[calculation.machine_name]
+    module="gen_constants"
+    class="ConstantSet"
+[calculation.machine_name.config]
+    machine = "Machine_1"
+[calculation.machine_name.variables]
+
+[calculation.rms_current]
+    module="gen_electrical"
+    class="RMSToPeak"
+[calculation.rms_current.variables]
+    var_in = "current_rms"
+    var_out = "clamp_current"
+
+[calculation.current_clamp]
+    module="gen_current_clamp"
+    class="VoltageClamp"
+[calculation.current_clamp.config]
+    nominal_current = 50
+[calculation.current_clamp.variables]
+    current_in = "clamp_current"
+    voltage_out = "v_amp_in"
+
+[calculation.amplifier]
+    module="gen_amplifier"
+    class="GenAmplifier"
+[calculation.amplifier.config]
+    gain = 2
+[calculation.amplifier.variables]
+    amp_input = "v_amp_in"
+    amp_output = "v_amp_out"
+
+#=-= Define Calculation Pipelines =-=
+[pipelines]
+    rms_current = ["rms_current","current_clamp","amplifier","machine_name"]
+
+#=-= Define Measurements Pipelines =-=
+[measurement]
+    module="gen_sample"
+    class="MultiSampleIndividualAvg"
+[measurement.config]
+    period = 1.0 # seconds
+    n_samples = 5
+[[measurement.sensing_stacks]]
+    device = "adc_0"
+    pipeline = "rms_current"
+
+
+[output.phase_a]
+    topic = "power_monitoring/{{machine}}/{{phase}}"
+[output.phase_a.message_spec]
+    machine = "$.machine"
+    timestamp = '$.timestamp'
+    current = "$.current_rms"
+    phase = "#A"
+
+[output.phase_b]
+    topic = "power_monitoring/{{machine}}/{{phase}}"
+[output.phase_b.message_spec]
+    machine = "$.machine"
+    timestamp = '$.timestamp'
+    current = "$.current_rms"
+    phase = "#B"
+
+[output.phase_c]
+    topic = "power_monitoring/{{machine}}/{{phase}}"
+[output.phase_c.message_spec]
+    machine = "$.machine"
+    timestamp = '$.timestamp'
+    current = "$.current_rms"
+    phase = "#C"
+
+
+[mqtt]
+    # URL of the mqtt broker
+    broker = "mqtt.docker.local"
+    # Port to use when connecting to the broker
+    port = 1883   #common mqtt ports are 1883 and 8883
+    # prefix to prepend to the topic of all published messages
+    topic_prefix = ""
+
+    #reconnection characteristics
+    # start: timeout = initial,
+    # if timeout < limit then
+    #   timeout = timeout*backoff
+    # else
+    #   timeout = limit
+    reconnect.initial = 5 # seconds
+    reconnect.backoff = 2 # multiplier
+    reconnect.limit = 60 # seconds

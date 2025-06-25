@@ -1,0 +1,86 @@
+#=-= Define Interface Modules =-=
+[interface.spi0]
+    module="spi"
+    class="SPI"
+[interface.spi0.config]
+    bus=0
+    device=0 # chip enable 0
+    speed=1000000
+    mode=0
+
+[interface.spi1]
+    module="spi"
+    class="SPI"
+[interface.spi1.config]
+    bus=0
+    device=1 # chip enable 1
+    speed=1000000
+    mode=0
+
+#=-= Define Device Modules =-=
+[device.adc_0]
+    module="adc_MCP300X"
+    class="MCP3008"
+    interface="spi0"
+[device.adc_0.config]
+    adc_channel=0
+[device.adc_0.variables]
+    v_in = "v_amp_out"
+
+#=-= Define Calculation Modules =-=
+[calculation.machine_name]
+    module="gen_constants"
+    class="ConstantSet"
+[calculation.machine_name.config]
+    machine = "Machine_1"
+[calculation.machine_name.variables]
+
+[calculation.calibrate]
+    module="gen_calibrate"
+    class="OffsetMultiplier"
+[calculation.calibrate.config]
+    offset = -1.61              # Slightly less offset required in empirical tuning. Nominal midsupply 3V3/2
+    multiplier = 15.62
+[calculation.calibrate.variables]
+    raw_value = "v_amp_out"
+    calibrated_value = "current"
+
+#=-= Define Calculation Pipelines =-=
+[pipelines]
+    single_clamp = ["calibrate","machine_name"]
+
+#=-= Define Measurements Pipelines =-=
+[measurement]
+    module="gen_sample"
+    class="SingleSampleAvg"
+[measurement.config]
+    period = 1.0 # seconds
+    n_samples = 5
+[[measurement.sensing_stacks]]
+    device = "adc_0"
+    pipeline = "single_clamp"
+    constants = {'phase'='single'}
+
+[output.overall]
+    topic = "power_monitoring/{{machine}}/{{phase}}"
+[output.overall.message_spec]
+    timestamp = '$.timestamp'
+    current = "$.current"
+    phase = "$.phase"
+    machine="$.machine"
+
+
+[mqtt]
+    broker = "mqtt.docker.local"
+    port = 1883   #common mqtt ports are 1883 and 8883
+    topic_prefix = ""
+
+    #reconnection characteristics
+    # start: timeout = initial,
+    # if timeout < limit then
+    #   timeout = timeout*backoff
+    # else
+    #   timeout = limit
+    reconnect.initial = 5 # seconds
+    reconnect.backoff = 2 # multiplier
+    reconnect.limit = 60 # seconds
