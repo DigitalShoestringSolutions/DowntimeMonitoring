@@ -1,3 +1,1 @@
-# User's pip requirements go here.
-# If the Solution is being Assembled, this file will be replaced with UserConfig/Sensing/requirements.txt
-# Requirements for MQTT publication and logging are already taken care of. This space is intended for requirements relating to specific hardware.
+smbus2==0.5.0   # i2c bus controller
