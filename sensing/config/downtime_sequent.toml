@@ -37,7 +37,7 @@
 [[measurement.sensing_stacks]]
     device = "gpio_0"
     pipeline = "running_status"
-    constants = {'channel'=device.gpio_0.config.gpio_channel}
+    #constants = {'channel'=device.gpio_0.config.gpio_channel} # causes TOMLDecodeError. Don't know why. Can't a config value be included in the MQTT message?
 
 [output.overall]
     topic = "power_monitoring/{{machine}}/{{phase}}"
