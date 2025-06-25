@@ -47,31 +47,35 @@ class Sequent16DigitalInputs:
         16 : 0x0001,
     }
 
-
-    def __init__(self, stack: int = 0, bus: int = 1):
+    def __init__(self, config, variables):
         """Class for reading data from the Sequent Microsystems 8 and 16 digital input HATs.
 
         https://sequentmicrosystems.com/products/16-universal-inputs-card-for-raspberry-pi.
         https://sequentmicrosystems.com/products/eight-hv-digital-inputs-for-raspberry-pi
 
-        stack (default 0): The address offset set by jumpers/DIP switches on the HAT. No jumpers or all off = stack 0.
-        bus (default 1): The number of the i2c bus the device responds on, passed to smbus2.
+        """
+        self.channel = config.get('gpio_channel')
+        self.i2c_address = config.get('i2c_address', 0x27)
+
+        self.i2c = None
+        self.channel_mask = 0b111
+        self.input_variable = variables['dig_in']
+
+
+    def initialise(self, interface):
+        self.i2c = interface
+
+
+    def sample(self) -> dict:
+        """Report the status of single channel.
+        Returns a dictionary with single entry key variables['dig_in'] and the value is the status of self.channel
         """
 
-        # Validate stack input
-        if stack < 0 or stack > 7 or not isinstance(stack, int):
-            raise ValueError('Invalid stack level ' + type(stack) + ' ' + str(stack) + ' , must be int 0-7 inclusive')
-
-        # Calculate device I2C address as offset by stack number.
-        # 7 bit address (will be left shifted to add the read write bit)
-        # Flip stack bits with XOR. Stack 0 has address 0x27, each stack decrements that until stack 7 is at 0x20
-        self._hw_addr = 0x20 + (0x07 ^ stack)   # No other need to save stack
-
-        # Save other args
-        self._bus = bus
+        status = self.read_single_channel(self.channel)
+        return {self.input_variable: status}
 
 
-    def _extract_channel(self, status_reg, channel):
+    def _extract_channel(self, status_reg, channel) -> int:
         """Use the register status and channel map to deduce to status of a single channel.
         Bits are complemented (flipped) and not necessarily in order.
         """
@@ -153,8 +157,8 @@ class Sequent16DigitalInputs:
         """
 
         # Use a context manager to handle errors on the bus
-        with smbus2.SMBus(self._bus) as i2cbus:
-            status_reg = i2cbus.read_word_data(self._hw_addr, self._DIGITAL_INPUTS_STATUS_REGISTER_ADDRESS)
+        buffer_out = self.i2c.read_register(self.i2c_address, self._DIGITAL_INPUTS_STATUS_REGISTER_ADDRESS, 2)
+        status_reg = (buffer_out[0] << 8) + buffer_out[1] # is that equlivalent to read_word_data? I hope so.
 
         # Return a 16 bit integer.
         return status_reg
