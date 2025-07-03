@@ -1,5 +1,5 @@
-# Enable or disable the sensing module. This is disabled by default, change False to True to use.
-module_enabled = False
+# Enable or disable the sensing module. This is disabled by default, change false to true to use. Note that unlike Python, TOML requires these are lowercase.
+module_enabled = false
 
 # Load the base config for Downtime Monitoring with a Sequnet Microsystems digital inputs HAT
 module_config_file = "./config/downtime_sequent.toml"
