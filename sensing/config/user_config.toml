@@ -1,4 +1,7 @@
-# Load the base config for Downtime Monitoring with a Seuqnet Microsystems digital inputs HAT
+# Enable or disable the sensing module. This is disabled by default, change False to True to use.
+module_enabled = False
+
+# Load the base config for Downtime Monitoring with a Sequnet Microsystems digital inputs HAT
 module_config_file = "./config/downtime_sequent.toml"
 
 #   Select the hardware variant (by removing the leading #) you are using 
