@@ -74,8 +74,9 @@ class Sequent16DigitalInputs:
         Returns a dictionary with single entry key variables['dig_in'] and the value is the status of self.channel
         """
         try:
-            status = self.read_single_channel(self.channel)
-            return {self.input_variable: status}
+            status_report = {self.input_variable: self.read_single_channel(self.channel)}
+            logger.debug("digin_sequent returning sample " + status_report)
+            return status_report
 
         except Exception as e:
             logger.error(traceback.format_exc())
@@ -97,9 +98,13 @@ class Sequent16DigitalInputs:
 
         # Extract value. Bits are complemented (bit 0 => voltage high, bit 1 => voltage low)
         if status_reg & self._channel_map[channel] == 0:
-            return 1
+            channelstatus = 1
         else:
-            return 0
+            channelstatus = 0
+
+        # Report and return status
+        logger.debug("Extracted channel " + channel + " status as " channelstatus)
+        return channelstatus
 
 
     def read_single_channel(self, channel: int) -> int:
@@ -168,6 +173,7 @@ class Sequent16DigitalInputs:
         status_reg = (buffer_out[0] << 8) + buffer_out[1] # is that equlivalent to read_word_data? I hope so.
 
         # Return a 16 bit integer.
+        logger.debug("Sequent digital inputs had read status bits as " + bin(status_reg))
         return status_reg
 
 
