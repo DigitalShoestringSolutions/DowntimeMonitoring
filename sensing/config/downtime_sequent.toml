@@ -40,7 +40,7 @@
     #constants = {'channel'=device.gpio_0.config.gpio_channel} # causes TOMLDecodeError. Don't know why. Can't a config value be included in the MQTT message?
 
 [output.overall]
-    topic = "power_monitoring/{{machine}}/{{phase}}"
+    topic = "machine_running_status/{{machine}}"
 [output.overall.message_spec]
     timestamp = '$.timestamp'
     running = '$.running_light'
