@@ -170,7 +170,7 @@ class Sequent16DigitalInputs:
 
         # Use a context manager to handle errors on the bus
         buffer_out = self.i2c.read_register(self.i2c_address, self._DIGITAL_INPUTS_STATUS_REGISTER_ADDRESS, 2)
-        status_reg = (buffer_out[0] << 8) + buffer_out[1] # is that equlivalent to read_word_data? I hope so.
+        status_reg = (buffer_out[1] << 8) + buffer_out[0] # equlivalent to if smbus2's read_word_data was done directly
 
         # Return a 16 bit integer.
         logger.debug("Sequent digital inputs had read status bits as " + bin(status_reg))
