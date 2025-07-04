@@ -103,7 +103,7 @@ class Sequent16DigitalInputs:
             channelstatus = 0
 
         # Report and return status
-        logger.debug("Extracted channel " + channel + " status as " channelstatus)
+        logger.debug("Extracted channel " + str(channel) + " status as " + str(channelstatus))
         return channelstatus
 
 
