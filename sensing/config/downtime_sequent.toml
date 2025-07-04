@@ -1,0 +1,63 @@
+#=-= Define Interface Modules =-=
+[interface.i2c0]
+    module="i2c"
+    class="I2C"
+[interface.i2c0.config]
+    bus=1
+
+#=-= Define Device Modules =-=
+[device.gpio_0]
+    module="digin_sequent"
+    class="Sequent8DigitalInputs"
+    interface="i2c0"
+[device.gpio_0.config]
+    gpio_channel=1
+[device.gpio_0.variables]
+    dig_in = "running_light"
+
+#=-= Define Calculation Modules =-=
+[calculation.machine_name]
+    module="gen_constants"
+    class="ConstantSet"
+[calculation.machine_name.config]
+    machine = "Machine_1"
+[calculation.machine_name.variables]
+
+#=-= Define Calculation Pipelines =-=
+[pipelines]
+    running_status = ["machine_name"]
+
+#=-= Define Measurements Pipelines =-=
+[measurement]
+    module="gen_sample"
+    class="SingleSample"
+[measurement.config]
+    period = 5.0 # seconds
+    n_samples = 1
+[[measurement.sensing_stacks]]
+    device = "gpio_0"
+    pipeline = "running_status"
+    #constants = {'channel'=device.gpio_0.config.gpio_channel} # causes TOMLDecodeError. Don't know why. Can't a config value be included in the MQTT message?
+
+[output.overall]
+    topic = "machine_running_status/{{machine}}"
+[output.overall.message_spec]
+    timestamp = '$.timestamp'
+    running = '$.running_light'
+    machine = '$.machine'
+
+
+[mqtt]
+    broker = "mqtt.docker.local"
+    port = 1883   #common mqtt ports are 1883 and 8883
+    topic_prefix = ""
+
+    #reconnection characteristics
+    # start: timeout = initial,
+    # if timeout < limit then
+    #   timeout = timeout*backoff
+    # else
+    #   timeout = limit
+    reconnect.initial = 5 # seconds
+    reconnect.backoff = 2 # multiplier
+    reconnect.limit = 60 # seconds

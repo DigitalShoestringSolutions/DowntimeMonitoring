@@ -77,6 +77,22 @@ services:
                 tag: docker-sensor-adaptor
         restart: unless-stopped       
 
+    sensing:
+        extends:
+            file: sensing/app.yml
+            service: app
+        networks:
+            internal:
+                aliases:
+                    - sensing.docker.local
+        logging:
+            driver: syslog
+            options:
+                tag: docker-sensing
+        restart: unless-stopped
+        depends_on:
+            - "mqtt_broker"
+
 networks:
     internal:
       name: shoestring-internal
