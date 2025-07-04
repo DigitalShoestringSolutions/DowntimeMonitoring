@@ -75,7 +75,7 @@ class Sequent16DigitalInputs:
         """
         try:
             status_report = {self.input_variable: self.read_single_channel(self.channel)}
-            logger.debug("digin_sequent returning sample " + status_report)
+            logger.debug("digin_sequent returning sample: %s", status_report)
             return status_report
 
         except Exception as e:
