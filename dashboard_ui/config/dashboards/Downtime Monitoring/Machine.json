@@ -24,7 +24,7 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 5,
+    "id": 3,
     "links": [
         {
             "asDropdown": true,
@@ -41,7 +41,6 @@
             "url": ""
         }
     ],
-    "liveNow": false,
     "panels": [
         {
             "datasource": {
@@ -99,7 +98,7 @@
                 "showThresholdMarkers": true,
                 "sizing": "auto"
             },
-            "pluginVersion": "10.4.0",
+            "pluginVersion": "11.5.2",
             "targets": [
                 {
                     "cacheDurationSeconds": 5,
@@ -136,11 +135,15 @@
                         [
                             "to",
                             "${__to:date:iso}"
+                        ],
+                        [
+                            "machine",
+                            "${machine}"
                         ]
                     ],
                     "queryParams": "",
                     "refId": "A",
-                    "urlPath": "/state/downtime/machine/${machine}"
+                    "urlPath": "/state/downtime/machine"
                 }
             ],
             "title": "Utilisation",
@@ -210,6 +213,7 @@
                 "graphMode": "area",
                 "justifyMode": "auto",
                 "orientation": "horizontal",
+                "percentChangeColorMode": "standard",
                 "reduceOptions": {
                     "calcs": [
                         "lastNotNull"
@@ -221,7 +225,7 @@
                 "textMode": "auto",
                 "wideLayout": true
             },
-            "pluginVersion": "10.4.0",
+            "pluginVersion": "11.5.2",
             "targets": [
                 {
                     "datasource": {
@@ -319,11 +323,12 @@
                     "values": false
                 },
                 "tooltip": {
+                    "hideZeros": false,
                     "mode": "single",
                     "sort": "none"
                 }
             },
-            "pluginVersion": "10.4.0",
+            "pluginVersion": "11.5.2",
             "targets": [
                 {
                     "cacheDurationSeconds": 5,
@@ -357,11 +362,15 @@
                         [
                             "to",
                             "${__to:date:iso}"
+                        ],
+                        [
+                            "machine",
+                            "${machine}"
                         ]
                     ],
                     "queryParams": "",
                     "refId": "A",
-                    "urlPath": "/state/downtime/reasons/${machine}"
+                    "urlPath": "/state/downtime/reasons"
                 }
             ],
             "title": "Number of Stops",
@@ -447,11 +456,12 @@
                     "values": false
                 },
                 "tooltip": {
+                    "hideZeros": false,
                     "mode": "single",
                     "sort": "none"
                 }
             },
-            "pluginVersion": "9.1.1",
+            "pluginVersion": "11.5.2",
             "targets": [
                 {
                     "datasource": {
@@ -558,11 +568,12 @@
                 "rowHeight": 0.9,
                 "showValue": "auto",
                 "tooltip": {
+                    "hideZeros": false,
                     "mode": "single",
                     "sort": "none"
                 }
             },
-            "pluginVersion": "9.1.1",
+            "pluginVersion": "11.5.2",
             "targets": [
                 {
                     "cacheDurationSeconds": 5,
@@ -609,9 +620,9 @@
             "type": "state-timeline"
         }
     ],
+    "preload": false,
     "refresh": "",
-    "revision": 1,
-    "schemaVersion": 39,
+    "schemaVersion": 40,
     "tags": [
         "downtime"
     ],
@@ -628,9 +639,7 @@
                     "uid": "json_api"
                 },
                 "definition": "$[*].id",
-                "hide": 0,
                 "includeAll": false,
-                "multi": false,
                 "name": "machine",
                 "options": [],
                 "query": {
@@ -656,8 +665,6 @@
                 },
                 "refresh": 1,
                 "regex": "",
-                "skipUrlSync": false,
-                "sort": 0,
                 "type": "query"
             }
         ]
@@ -667,9 +674,9 @@
         "to": "now"
     },
     "timepicker": {},
-    "timezone": "",
+    "timezone": "Europe/London",
     "title": "Machine Dashboard",
     "uid": "AoRWg_H4z",
-    "version": 14,
+    "version": 15,
     "weekStart": ""
 }
