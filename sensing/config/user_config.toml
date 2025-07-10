@@ -1,0 +1,15 @@
+# Enable or disable the sensing module. This is disabled by default, change false to true to use. Note that unlike Python, TOML requires these are lowercase.
+module_enabled = false
+
+# Load the base config for Downtime Monitoring with a Sequnet Microsystems digital inputs HAT
+module_config_file = "./config/downtime_sequent.toml"
+
+#   Select the hardware variant (by removing the leading #) you are using 
+device.gpio_0.class = "Sequent16DigitalInputs"
+#device.gpio_0.class = "Sequent8DigitalInputs"
+
+# Set which channel the machine's running light is connected to
+device.gpio_0.config.gpio_channel = 1
+
+#   Set the name of the machine being monitored 
+calculation.machine_name.config.machine = "Machine_Name_Here"
