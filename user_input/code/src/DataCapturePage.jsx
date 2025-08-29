@@ -241,7 +241,7 @@ export function RenderReasonButtonCell({ machine_id, event, handleEventClick }) 
   let final_cell_classes = 'd-grid h-100 p-1'
   if (event.reason) { //if reason set
     let reason_entry = reason_set.reasons[event.reason]
-    let category_entry = reason_set.categories[reason_entry.category]
+    let category_entry = reason_set.categories[reason_entry.category ?? "none"]
     final_cell_content = <Button style={{ backgroundColor: category_entry.colour, borderColor: 'transparent', color: 'black' }} onClick={() => handleEventClick(event)}>{category_entry.category_name + " - " + reason_entry.text}</Button>
     final_cell_classes = 'd-grid p-1'
   }
