@@ -1,1 +1,0 @@
-export const STATUS = { running: "running", stopped: "stopped", disconnected: "disconnected" }
