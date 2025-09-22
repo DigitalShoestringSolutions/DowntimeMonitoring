@@ -1,0 +1,80 @@
+recipe_vsn = "1.0.0"
+
+[solution]
+    name = "Downtime Monitoring"
+    slug = "downtime"
+    version = "3.0.0"
+    description = "Shoestring Downtime Monitoring Solution"
+
+
+
+[source.grafana]
+    git.path = "sm_grafana_ui"
+    git.tag = "v2.0.0"
+[source.data_storage]
+    git.path = "django_relational_db"
+    git.tag = "v1.0.0"
+[source.user_input]
+    git.path = "react_ui"
+    git.tag = "v1.0.0"
+# [source.sensor_adaptor]
+#     file.path = "./custom_service_modules/sensor_adaptor"
+#     file.mode = "link"
+
+
+
+[source.mqtt_broker]
+    git.path = "sm_mqtt_broker"
+    git.tag = "v2.0.0"
+[source.logging]
+    git.path = "Logging"
+    git.tag = "v1.0.0"
+[source.plink]
+    git.path = "PlatformLink"
+    git.tag = "v1.0.0"
+
+
+
+
+[service_module.db]
+    source = "data_storage"
+    containers = ["db"]
+    ports.db.api = 8001
+    alias.db = "data-storage"
+
+[service_module.dashboards]
+    source = "grafana"
+    containers = ["grafana"]
+    ports.grafana.ui = 3000
+    template.disable_sanitise_html = "false"
+
+[service_module.user-input]
+    source = "user_input"
+    containers = ["webserver"]
+    ports.webserver.ui = 80
+
+# [service_module.sensor_adaptor]
+#     source = "sensor_adaptor"
+#     containers = ["app"]
+#     ports.app.ui = 1880
+
+
+
+[infrastructure.mqtt-broker]
+    source = "mqtt_broker"
+    containers = ["broker"]
+    ports.broker.tcp = 1883
+    ports.broker.websocket = 9001
+    alias.broker = "mqtt"
+[infrastructure.logging]
+    source = "logging"
+    containers = ["alloy","loki"]
+    ports.loki.api = 3100
+    alias.loki = "loki"
+    alias.alloy = "alloy"
+    volume.alloy.docker_sock = "/var/run/docker.sock"
+[infrastructure.platform_link]
+    source = "plink"
+    containers = ["link"]
+    ports.link.ui = 5000
+    alias.link = "platform_link"
