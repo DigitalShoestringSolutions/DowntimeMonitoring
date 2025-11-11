@@ -2,9 +2,7 @@
     "sources": [
         {
             "topic": "power_monitoring/Advanced_Test/C",
-            "filter": {
-                "phase": "C"
-            },
+            "filter": {},
             "metric": "current",
             "value": 12,
             "comparison": "gte",
