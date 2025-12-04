@@ -1,4 +1,12 @@
+# Compiled and metadata file types
+__pycache__/
+*.DS_Store
+
+# Explicit exclusions
 data/**
 assembled/**
-console_log.html
-**__pycache__
+**/django_secret_key
+**/default_password
+
+# Explicit inclusions
+!**/.gitkeep
