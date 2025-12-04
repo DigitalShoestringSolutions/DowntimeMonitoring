@@ -1,0 +1,14 @@
+# Enable or disable the sensing module.
+module_enabled = {{module_enabled_out}}
+
+# Load the base config (typically ./module_config/downtime_sequent.toml)
+module_config_file = "./module_config/{{module_config_file_out}}"
+
+#   Select the hardware variant you are using (typically either "Sequent8DigitalInputs" or "Sequent16DigitalInputs")
+device.gpio_0.class = "{{device_class_out}}"
+
+# Set which channel the machine's running light is connected to
+device.gpio_0.config.gpio_channel = {{channel_out}}
+
+#   Set the name of the machine being monitored 
+calculation.machine_name.config.machine = "{{machine_name_out}}"
