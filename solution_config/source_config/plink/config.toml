@@ -1,0 +1,10 @@
+solution_type = "downtime"
+solution_version = "v3.1.0"
+
+
+# These are the defaults for these settings.
+# they can be modified using the control panel 
+# (changes are saved in the database in /data)
+[default_transmitted_stats]
+    running = true
+    usage = false
