@@ -13,6 +13,11 @@ recipe_vsn = "1.0.0"
 
 
 # Service module instances present in this solution
+[service_module.sensing]
+    source="sensing"
+    containers = ["sensing"]
+    template.log_level = "info"
+
 [service_module.db]
     source = "data_storage"
     containers = ["db"]
@@ -62,6 +67,10 @@ recipe_vsn = "1.0.0"
 
 
 # Available module code sources which can feed the above instances
+[source.sensing]
+    git.path = "sm_SensingDC"
+    git.branch = "feature/digin"  # to be changed to v1.5.0 once released
+
 [source.grafana]
     git.path = "sm_grafana_ui"
     git.tag = "v2.0.0"
