@@ -30,10 +30,10 @@ recipe_vsn = "1.0.0"
     containers = ["webserver"]
     ports.webserver.ui = 80
 
-# [service_module.sensor_adaptor]
-#     source = "sensor_adaptor"
-#     containers = ["app"]
-#     ports.app.ui = 1880
+[service_module.sensor_adaptor]
+    source = "sensor_adaptor"
+    containers = ["app"]
+    ports.app.ui = 1880
 
 
 
@@ -74,9 +74,9 @@ recipe_vsn = "1.0.0"
     git.path = "react_ui"
     git.tag = "v1.0.0"
 
-# [source.sensor_adaptor]
-#     file.path = "./custom_service_modules/sensor_adaptor"
-#     file.mode = "link"
+[source.sensor_adaptor]
+    file.path = "./custom_service_modules/sensor_adaptor"
+    file.mode = "link"
 
 [source.mqtt_broker]
     git.path = "sm_mqtt_broker"
