@@ -1,17 +1,17 @@
 {
     "sources": [
         {
-            "topic": "power_monitoring/Advanced_Test/A",
-            "filter":{"phase":"A"},
-            "metric": "current",
-            "value": 6,
-            "comparison": "gte",
-            "target": "4fa3bde4-bfb3-4ad5-b17b-bc4fed006077"
+            "topic": "{{mqtt_topic}}",
+            "filter":{},
+            "metric": "{{metric}}",
+            "value": {{value}},
+            "comparison": "{{comparison}}",
+            "target": "{{target_uuid}}"
         }
     ],
     "mqtt": {
         "in": {
-            "broker": "mqtt.docker.local",
+            "broker": "{{broker_in}}",
             "port": 1883
         },
         "out": {
