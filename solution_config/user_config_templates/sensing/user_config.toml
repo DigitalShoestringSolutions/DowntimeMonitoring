@@ -1,5 +1,9 @@
 # Enable or disable the sensing module.
-module_enabled = {{module_enabled_out}}
+{% if module_enabled_out == true %}
+module_enabled = true
+{% else %}
+module_enabled = false
+{% endif %}
 
 # Load the base config (typically ./module_config/downtime_sequent.toml)
 module_config_file = "./module_config/{{module_config_file_out}}"
