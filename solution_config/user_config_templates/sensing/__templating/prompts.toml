@@ -34,8 +34,8 @@
   criteria = "enabled=true"
   type = "select"
   prompt = "Which digital input device are you using"
-  opt.seq_8ch = "Sequent 8 channel High Voltage Digital Inputs"
-  opt.seq_16ch = "Sequent 16 channel Low Voltage Digital Inputs"
+  opt.Sequent8DigitalInputs = "Sequent 8 channel High Voltage Digital Inputs"
+  opt.Sequent16DigitalInputs = "Sequent 16 channel Low Voltage Digital Inputs"
   #opt.seq_uni = "Sequent 16 channel Universal Inputs ADC"
 
 [Q.channel]
@@ -51,7 +51,7 @@
   var = "machine_name"
 
 [[OUT.module_config_file_out.map]]
-  criteria = "digin_device = seq_8ch | digin_device = seq_16ch"
+  criteria = "digin_device = Sequent8DigitalInputs | digin_device = Sequent16DigitalInputs"
   value = "downtime_sequent.toml"
 
 [OUT.device_class_out]
