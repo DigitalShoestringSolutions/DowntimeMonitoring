@@ -54,6 +54,9 @@
   criteria = "digin_device = seq_8ch | digin_device = seq_16ch"
   value = "downtime_sequent.toml"
 
+[OUT.device_class_out]
+  var = "digin_device"
+
 [OUT.channel_out]
   var = "channel" 
 
