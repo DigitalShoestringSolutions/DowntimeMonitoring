@@ -26,10 +26,12 @@
   prompt = "Enable sensing module?"
 
 [Q.machine_name]
+  criteria = "enabled=true"
   type = "text"
   prompt = "Choose a name for this machine"
 
 [Q.digin_device]
+  criteria = "enabled=true"
   type = "select"
   prompt = "Which digital input device are you using"
   opt.seq_8ch = "Sequent 8 channel High Voltage Digital Inputs"
@@ -37,6 +39,7 @@
   #opt.seq_uni = "Sequent 16 channel Universal Inputs ADC"
 
 [Q.channel]
+  criteria = "enabled=true"
   type = "text"
   prompt = "Which digital input channel is the machine's running light plugged into?"
 
