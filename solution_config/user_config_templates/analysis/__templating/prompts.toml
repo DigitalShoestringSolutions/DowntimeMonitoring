@@ -22,26 +22,41 @@
 #       opt.<next_value> = "<next_option_text>"  
 
 
-[Q.default_low_threshold]
-type="text" # no separate number type, must use text then parse with float()
-prompt="Default Low Alert Threshold (used for machines that don't have one specified)"
+[Q.sensorbroker]
+type="text"
+prompt="MQTT broker name / IP address of where the sensor data can be found."
 
-[Q.default_high_threshold]
-type="text" # no separate number type, must use text then parse with float()
-prompt="Default High Alert Threshold (used for machines that don't have one specified)"
+[Q.sensortopic]
+type="text"
+prompt="MQTT topic containing the sensor data. Typically includes the machine name."
 
-[Q.default_hyst]
-type="text" # no separate number type, must use text then parse with float()
-prompt="Default hysteresis for resetting alerts (used for machines that don't have one specified)"
+[Q.param]
+type="text"
+prompt="Parameter in the MQTT message containing the data to compare to the threshold."
 
-[OUT.default_low_threshold_value]
-var="default_low_threshold"
+[Q.thresh]
+type="text"
+prompt="Threshold value. Above this, the machine is running"
 
-[OUT.default_high_threshold_value]
-var="default_high_threshold"
+[Q.machine_id]
+type="text"
+prompt"UUID of the machine to create downtime events on. Get this from the admin page when the downtime monitoring solution is running.
 
-[OUT.default_hyst_value]
-var="default_hyst"
+
+[OUT.sensor_broker]
+var="sensorbroker"
+
+[OUT.sensor_topic]
+var="sensortopic"
+
+[OUT.paramter]
+var="param"
+
+[OUT.threshold]
+var="thresh"
+
+[OUT.machine_uuid]
+var = "machine_id"
 
 # Note: The following lines are examples of how to reference the answers in the user configuration template.
 # For example, in user_config.toml, you can use {{machine_name}} to insert the machine name provided by the user.

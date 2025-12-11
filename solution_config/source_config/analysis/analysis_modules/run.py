@@ -1,6 +1,8 @@
-"""Configure analysis module for temperature monitoring.
+"""Configure analysis module as a downtime monitoring sensor adaptor.
 
-Compares temperature readings to thresholds and posts alerts to MQTT if the comparison result changes.
+Compares sensor readings to thresholds and posts alerts to MQTT if the comparison result changes.
+
+One analysis module instance per sensor-machine link.
 
 """
 
@@ -29,90 +31,79 @@ trigger = TriggerEngine(config)
 
 ## -------------
 
-# Default value for global variables
-OldAlertVals = {} # machine-specific values will be added after first comparision
-OldAlertTimes = {} # machine-specific timestamps when alert status was last published
+# Default values for global variables
+OldRunningVal = None # value (bool) will be added after first comparision
+OldRunningTime = "2021-01-01T00:00:00+00:00" # timestamp when alert status was last published. Default to a time in the past that will parse
+
+# Load config - outside of function
+broker = config["sensor"]["broker"]
+topic = config["sensor"]["topic"]
+parameter_name = config["thresholds"]["parameter"]
+threshold = float(config["thresholds"]["value"])
+target = config["output"]["target"]
 
 # Main function
-@trigger.mqtt.event("temperature_monitoring/+")   # Subscribe to single depth only (machine names) to avoid regurgitating its own messages.
-async def thresholds(topic, payload, config={}):  # per-machine class instances would be nice, to make saving context easier than global vars
+@trigger.mqtt.event(topic)  # TODO: how can the broker to subscribe to be loaded from config? How does it get passed to this?
+async def thresholds(topic, payload, config={}): 
     """Receives an MQTT message, compares the contained temperature reading to thresholds and send a new MQTT message with the topic suffix `/alerts`
 
     :param str topic:    The resolved topic of the incomming MQTT message
     :param dict payload: The payload of the incomming MQTT message, expecting json loaded as dict
-    :param dict config:  The module config
+    :param dict config:  (optional) The module config (not used)
     """
-    global OldAlertVals  # allow this func to save previous value in global variable
-    global OldAlertTimes
+    global OldRunningVal  # allow this func to save previous value in global variable
+    global OldRunningTime
 
-    # extract machine name, temperature reading and timestamp from payload
-    machine = payload["machine"]
-    temperature = float(payload["temperature"])
+    # extract sensor reading and timestamp from payload
+    parameter_value = float(payload[parameter_name])
     timestamp = payload["timestamp"]
-    logger.debug(f"Temperature thresholds comparison received temperature {temperature} for machine {machine} at {timestamp}")
-    
-    # extract previous alert value for this machine from global variable
-    OldAlertVal = OldAlertVals.get(machine, None)
-    OldAlertTime = OldAlertTimes.get(machine, "2021-01-01T00:00:00+00:00")  # Default to a time in the past that will parse
 
-    # extract thresholds from machine-specific config
-    machine_thresholds = config["thresholds"]["machines"].get(machine, config["thresholds"]["default"])
-    high_threshold = float(machine_thresholds["high"]["value"])
-    high_hyst = float(machine_thresholds["high"]["hyst"])
-    low_threshold = float(machine_thresholds["low"]["value"])
-    low_hyst = float(machine_thresholds["low"]["hyst"])
-    logger.debug(f"comparing temperature {temperature} on machine {machine} to high threshold {high_threshold} (-{high_hyst}) and low threshold {low_threshold} (+{low_hyst})")
-    
-    # compare temperature reading to thresholds
-    if temperature > high_threshold:
-        AlertVal = 1
-    elif temperature > (high_threshold - high_hyst) and OldAlertVal == 1:
-        AlertVal = 1
-    elif temperature < low_threshold:
-        AlertVal = -1
-    elif temperature < (low_threshold + low_hyst) and OldAlertVal == -1:
-        AlertVal = -1
+    # Also extract other info that won't be used
+    machine = payload.get("machine", "NoMachineNameInMQTTMessage")
+    logger.debug(f"Downtime thresholds comparison received parameter {parameter_name} value {parameter_value} on topic {topic} for machine {machine} at {timestamp}, comparing to threshold {threshold}")
+        
+    # compare reading to thresholds
+    if parameter_value > threshold:
+        Running = 1
     else:
-        AlertVal = 0
-    logger.debug(f"AlertVal for {machine} calculated as {AlertVal}")
+        Running = 0
+    logger.debug(f"Running status for machine {machine} calculated as {Running}")
 
-    # iif results have changed, or previous output was more than 1h ago, publish result. The option to publish regardless could be made configurable.
+    # iif results have changed, or previous output was more than 1h ago, publish result.
     SendUpdate = False
-    if (AlertVal != OldAlertVal):
+    if (Running != OldRunningVal):
         SendUpdate = True
-        logger.info(f"Machine {machine} temperature {temperature} passing thresholds {low_threshold} (+{low_hyst}) and {high_threshold} (-{high_hyst}) at {timestamp}")
+        logger.info(f"Machine {machine} running status changed to {Running} as {parameter_name} passing threshold {threshold} at {timestamp}")
 
     if (datetime.datetime.fromisoformat(timestamp) > (datetime.datetime.fromisoformat(OldAlertTime) + datetime.timedelta(hours=1))):
         SendUpdate = True
-        logger.info(f"Sending repeat AlertVal message for Machine {machine} at temperature {temperature} as previous update was > 1h ago")
+        logger.info(f"Sending repeat RunningVal {Running} message for machine {machine} as previous update was > 1h ago")
 
     if SendUpdate:
         # Prepare message variables
         output_payload = {
             "timestamp"     : timestamp,
-            "machine"       : machine,
-            "AlertVal"      : AlertVal,
-            "ThresholdLow"  : low_threshold,                      # Including threshold values just as a FYI for debugging
-            "ThresholdHigh" : high_threshold,
+            "machine"       : machine,          # Pass through for debug info
+            "running"       : Running,
+            "source"        : "sensor",
+            "Threshold"     : threshold,        # Pass through for debug info
         }
-        broker = config.get("output_broker", "mqtt.docker.local") 
-        topic = topic + "/alerts"                                 # Alerts suffix to topic could be configurable but not implementing until some demand
 
         # Publish to MQTT
-        logger.info(f"Publishing machine {machine} AlertVal {AlertVal} to broker: {broker} topic: {topic}")
-        pahopublish.single(topic=topic, payload=json.dumps(output_payload), hostname=broker, retain=True)
+        logger.debug(f"Publishing machine {target} RunningVal {Running} to mqtt.docker.local topic: {target}")
+        pahopublish.single(topic=target, payload=json.dumps(output_payload), hostname="mqtt.docker.local", retain=True)
         logger.debug(f"publication to {broker} complete")
 
 
     else:
         pass # New message would be a repeat of the old, don't spam. Sounds like a good idea until the broker crashes and loses the retained message.
         # Could have separate mqtt topics for every result vs only update on changes, but then why does the change-only topic exist?
-        logger.debug(f"AlertVal {AlertVal} unchanged, not publishing")
+        logger.debug(f"RunningVal {Running} unchanged, not publishing")
 
 
     # Save result for next time
-    OldAlertVals[machine] = AlertVal
-    OldAlertTimes[machine] = timestamp
+    OldRunningVal = Running
+    OldAlertTime = timestamp
 
 
 # Start the trigger engine and its scheduler/event loops
