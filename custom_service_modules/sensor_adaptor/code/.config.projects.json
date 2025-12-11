@@ -1,8 +1,0 @@
-{
-    "projects": {
-        "app": {
-            "credentialSecret": false
-        }
-    },
-    "activeProject": "app"
-}
