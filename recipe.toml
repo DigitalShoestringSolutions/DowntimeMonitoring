@@ -30,6 +30,12 @@ recipe_vsn = "1.0.0"
     containers = ["webserver"]
     ports.webserver.ui = 80
 
+[service_module.analysis]
+    source = "analysis"
+    containers = ["analysis-sm"]
+    ports.analysis-sm.api = 8000
+    alias.analysis-sm = "analysis"
+    template.log_level = "info"
 
 
 # Infrastructure modules present in this solution
@@ -68,6 +74,10 @@ recipe_vsn = "1.0.0"
 [source.user_input]
     git.path = "react_ui"
     git.tag = "v1.0.0"
+
+[source.analysis]
+    git.path = "sm_analysis"
+    git.tag = "v0.2.2"
 
 [source.mqtt_broker]
     git.path = "sm_mqtt_broker"
