@@ -1,0 +1,5 @@
+{
+    "default_low_threshold":  20,
+    "default_high_threshold": 25,
+    "default_hyst" : 0.5
+}

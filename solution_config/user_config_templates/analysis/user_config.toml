@@ -1,0 +1,17 @@
+[thresholds.default]
+high.value = {{default_high_threshold_value}}
+high.hyst = {{default_hyst_value}}            # high alert will reset when temp is high.value - high.hyst
+low.value = {{default_low_threshold_value}}
+low.hyst = {{default_hyst_value}}             # low alert will reset when temp is low.value + low.hyst
+
+[thresholds.machines.Machine_1]               # Currently machine-specific value cannot be set from prompts, must edit this file after building.
+high.value = 30
+high.hyst = 1
+low.value = 20
+low.hyst = 1
+
+[thresholds.machines.Machine_2]
+high.value = 30
+high.hyst = 1
+low.value = 20
+low.hyst = 1
