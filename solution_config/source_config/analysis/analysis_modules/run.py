@@ -3,6 +3,7 @@
 Compares sensor readings to thresholds and posts alerts to MQTT if the comparison result changes.
 
 One analysis module instance per sensor-machine link.
+Use the recipe to create multiple sensor adaptor module instances if you would like automatic downtime event creation on multiple machines.
 
 """
 
@@ -33,7 +34,7 @@ trigger = TriggerEngine(config)
 
 # Default values for global variables
 OldRunningVal = None # value (bool) will be added after first comparision
-OldRunningTime = "2021-01-01T00:00:00+00:00" # timestamp when alert status was last published. Default to a time in the past that will parse
+OldRunningTime = "2021-01-01T00:00:00+00:00" # timestamp when status was last published. Default to a time in the past that will parse
 
 # Load config - outside of function
 broker = config["sensor"]["broker"]
@@ -45,7 +46,7 @@ target = config["output"]["target"]
 # Main function
 @trigger.mqtt.event(topic)  # TODO: how can the broker to subscribe to be loaded from config? How does it get passed to this?
 async def thresholds(topic, payload, config={}): 
-    """Receives an MQTT message, compares the contained temperature reading to thresholds and send a new MQTT message with the topic suffix `/alerts`
+    """Receives an MQTT message, compares the contained reading to thresholds and send a new MQTT message to the downtime solution.
 
     :param str topic:    The resolved topic of the incomming MQTT message
     :param dict payload: The payload of the incomming MQTT message, expecting json loaded as dict
@@ -59,7 +60,7 @@ async def thresholds(topic, payload, config={}):
     timestamp = payload["timestamp"]
 
     # Also extract other info that won't be used
-    machine = payload.get("machine", "NoMachineNameInMQTTMessage")
+    machine = payload.get("machine", target)  # use UUID from config if no machine name found in sensor MQTT message
     logger.debug(f"Downtime thresholds comparison received parameter {parameter_name} value {parameter_value} on topic {topic} for machine {machine} at {timestamp}, comparing to threshold {threshold}")
         
     # compare reading to thresholds
@@ -75,7 +76,7 @@ async def thresholds(topic, payload, config={}):
         SendUpdate = True
         logger.info(f"Machine {machine} running status changed to {Running} as {parameter_name} passing threshold {threshold} at {timestamp}")
 
-    if (datetime.datetime.fromisoformat(timestamp) > (datetime.datetime.fromisoformat(OldAlertTime) + datetime.timedelta(hours=1))):
+    if (datetime.datetime.fromisoformat(timestamp) > (datetime.datetime.fromisoformat(OldRunningTime) + datetime.timedelta(hours=1))):
         SendUpdate = True
         logger.info(f"Sending repeat RunningVal {Running} message for machine {machine} as previous update was > 1h ago")
 
@@ -86,24 +87,22 @@ async def thresholds(topic, payload, config={}):
             "machine"       : machine,          # Pass through for debug info
             "running"       : Running,
             "source"        : "sensor",
-            "Threshold"     : threshold,        # Pass through for debug info
+            "threshold"     : threshold,        # Pass through for debug info
         }
 
         # Publish to MQTT
-        logger.debug(f"Publishing machine {target} RunningVal {Running} to mqtt.docker.local topic: {target}")
+        logger.debug(f"Publishing machine {machine} RunningVal {Running} to mqtt.docker.local topic: {target}")
         pahopublish.single(topic=target, payload=json.dumps(output_payload), hostname="mqtt.docker.local", retain=True)
-        logger.debug(f"publication to {broker} complete")
+        logger.debug(f"publication to mqtt.docker.local complete")
 
 
     else:
-        pass # New message would be a repeat of the old, don't spam. Sounds like a good idea until the broker crashes and loses the retained message.
-        # Could have separate mqtt topics for every result vs only update on changes, but then why does the change-only topic exist?
-        logger.debug(f"RunningVal {Running} unchanged, not publishing")
+        logger.debug(f"RunningVal {Running} for machine {machine} unchanged, not publishing")
 
 
     # Save result for next time
     OldRunningVal = Running
-    OldAlertTime = timestamp
+    OldRunningTime = timestamp
 
 
 # Start the trigger engine and its scheduler/event loops
