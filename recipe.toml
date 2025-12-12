@@ -18,6 +18,7 @@ recipe_vsn = "1.0.0"
     containers = ["analysis-sm"]
     ports.analysis-sm.api = 8000
     alias.analysis-sm = "analysis"
+    template.log_level = "info"
 
 [service_module.sensing]
     source="sensing"
