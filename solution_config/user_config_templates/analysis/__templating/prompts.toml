@@ -40,7 +40,7 @@ prompt="Threshold value. Above this, the machine is running"
 
 [Q.machine_id]
 type="text"
-prompt"UUID of the machine to create downtime events on. Get this from the admin page when the downtime monitoring solution is running.
+prompt="UUID of the machine to create downtime events on. Get this from the admin page when the downtime monitoring solution is running."
 
 
 [OUT.sensor_broker]
