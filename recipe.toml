@@ -13,6 +13,13 @@ recipe_vsn = "1.0.0"
 
 
 # Service module instances present in this solution
+[service_module.analysis]
+    source = "analysis"
+    containers = ["analysis-sm"]
+    ports.analysis-sm.api = 8000
+    alias.analysis-sm = "analysis"
+    template.log_level = "info"
+
 [service_module.db]
     source = "data_storage"
     containers = ["db"]
@@ -30,12 +37,6 @@ recipe_vsn = "1.0.0"
     containers = ["webserver"]
     ports.webserver.ui = 80
 
-[service_module.analysis]
-    source = "analysis"
-    containers = ["analysis-sm"]
-    ports.analysis-sm.api = 8000
-    alias.analysis-sm = "analysis"
-    template.log_level = "info"
 
 
 # Infrastructure modules present in this solution
