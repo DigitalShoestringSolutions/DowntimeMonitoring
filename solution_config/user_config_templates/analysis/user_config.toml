@@ -1,7 +1,7 @@
 # One sensor adapter instance per sensor-machine link.
 
 [sensor]
-broker = "{{sensor_broker}}
+broker = "{{sensor_broker}}"
 topic = "{{sensor_mqtt_topic}}"
 
 
