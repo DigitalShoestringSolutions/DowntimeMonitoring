@@ -37,7 +37,7 @@ OldRunningVal = None # value (bool) will be added after first comparision
 OldRunningTime = "2021-01-01T00:00:00+00:00" # timestamp when status was last published. Default to a time in the past that will parse
 
 # Load config - outside of function
-#broker = config["sensor"]["broker"]  # not needed here - input_broker is passed directly to MQTTTrigger via trigger.engine.mqtt ... 
+#broker = config["sensor"]["broker"]  # not needed here - input_broker is passed directly to MQTTTrigger via trigger.engine.mqtt ...
 topic = config["sensor"]["topic"]
 parameter_name = config["thresholds"]["parameter"]
 threshold = float(config["thresholds"]["value"])
@@ -45,7 +45,7 @@ target = config["output"]["target"]
 
 # Main function
 @trigger.mqtt.event(topic)
-async def thresholds(topic, payload, config={}): 
+async def thresholds(topic, payload, config={}):
     """Receives an MQTT message, compares the contained reading to thresholds and send a new MQTT message to the downtime solution.
 
     :param str topic:    The resolved topic of the incomming MQTT message
@@ -62,7 +62,7 @@ async def thresholds(topic, payload, config={}):
     # Also extract other info that won't be used
     machine = payload.get("machine", target)  # use UUID from config if no machine name found in sensor MQTT message
     logger.debug(f"Downtime thresholds comparison received parameter {parameter_name} value {parameter_value} on topic {topic} for machine {machine} at {timestamp}, comparing to threshold {threshold}")
-        
+
     # compare reading to thresholds
     if parameter_value > threshold:
         Running = True
@@ -89,11 +89,11 @@ async def thresholds(topic, payload, config={}):
             "source"        : "sensor"
         }
 
-        topic = 'downtime/event' + target
+        topic = 'downtime/event/' + target
         if Running:
-            topic = topic + 'start'
+            topic = topic + '/start'
         else:
-            topic = topic + 'stop'
+            topic = topic + '/stop'
 
 
         # Publish to MQTT
