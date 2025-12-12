@@ -37,14 +37,14 @@ OldRunningVal = None # value (bool) will be added after first comparision
 OldRunningTime = "2021-01-01T00:00:00+00:00" # timestamp when status was last published. Default to a time in the past that will parse
 
 # Load config - outside of function
-broker = config["sensor"]["broker"]
+#broker = config["sensor"]["broker"]  # not needed here - input_broker is passed directly to MQTTTrigger via trigger.engine.mqtt ... 
 topic = config["sensor"]["topic"]
 parameter_name = config["thresholds"]["parameter"]
 threshold = float(config["thresholds"]["value"])
 target = config["output"]["target"]
 
 # Main function
-@trigger.mqtt.event(topic)  # TODO: how can the broker to subscribe to be loaded from config? How does it get passed to this?
+@trigger.mqtt.event(topic)
 async def thresholds(topic, payload, config={}): 
     """Receives an MQTT message, compares the contained reading to thresholds and send a new MQTT message to the downtime solution.
 

@@ -1,7 +1,8 @@
 # One sensor adapter instance per sensor-machine link.
 
+input_broker = "{{sensor_broker}}"  # this path required by MQTTTrigger
+
 [sensor]
-broker = "{{sensor_broker}}"
 topic = "{{sensor_mqtt_topic}}"
 
 
