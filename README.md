@@ -24,3 +24,8 @@ This solution has 3 main pages, accessed via a web browser:
  
 - Dashboard - View metrics and plots  
   [http://localhost:3000](http://localhost:3000) on the device or http://\<ip\>:3000 from other devices (username: admin, password: admin) [Please change password from default]
+
+## Using sensor data to create downtime events
+There is an optional analysis module included in this solution that can listen to sensor MQTT data and mark a machine as stopped or running automatically.  
+A threshold is configured and numerical data in JSON-over-MQTT from a sensor is compared to it.  
+If this module is not required and running status will instead be done by manual input through the webpage, the default config can be left.  
