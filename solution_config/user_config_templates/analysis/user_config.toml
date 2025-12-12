@@ -1,0 +1,16 @@
+# One sensor adapter instance per sensor-machine link.
+
+input_broker = "{{sensor_broker}}"  # this path required by MQTTTrigger
+
+[sensor]
+topic = "{{sensor_mqtt_topic}}"
+
+
+[thresholds]
+parameter = "{{mqtt_payload_json_key}}"
+value = {{threshold_value}}
+# Comparison is hard-coded to running when parameter is greater than value
+
+[output]
+target = "{{machine_uuid}}"
+# Always output to broker mqtt.docker.local, not configurable
