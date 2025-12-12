@@ -65,16 +65,16 @@ async def thresholds(topic, payload, config={}):
         
     # compare reading to thresholds
     if parameter_value > threshold:
-        Running = 1
+        Running = True
     else:
-        Running = 0
+        Running = False
     logger.debug(f"Running status for machine {machine} calculated as {Running}")
 
     # iif results have changed, or previous output was more than 1h ago, publish result.
     SendUpdate = False
     if (Running != OldRunningVal):
         SendUpdate = True
-        logger.info(f"Machine {machine} running status changed to {Running} as {parameter_name} passing threshold {threshold} at {timestamp}")
+        logger.info(f"Machine {machine} id {target} running status changed to {Running} as {parameter_name} passing threshold {threshold} at {timestamp}")
 
     if (datetime.datetime.fromisoformat(timestamp) > (datetime.datetime.fromisoformat(OldRunningTime) + datetime.timedelta(hours=1))):
         SendUpdate = True
@@ -84,15 +84,21 @@ async def thresholds(topic, payload, config={}):
         # Prepare message variables
         output_payload = {
             "timestamp"     : timestamp,
-            "machine"       : machine,          # Pass through for debug info
+            "machine"       : target,  # duplicate with topic? As usual.
             "running"       : Running,
-            "source"        : "sensor",
-            "threshold"     : threshold,        # Pass through for debug info
+            "source"        : "sensor"
         }
+
+        topic = 'downtime/event' + target
+        if Running:
+            topic = topic + 'start'
+        else:
+            topic = topic + 'stop'
+
 
         # Publish to MQTT
         logger.debug(f"Publishing machine {machine} RunningVal {Running} to mqtt.docker.local topic: {target}")
-        pahopublish.single(topic=target, payload=json.dumps(output_payload), hostname="mqtt.docker.local", retain=True)
+        pahopublish.single(topic=topic, payload=json.dumps(output_payload), hostname="mqtt.docker.local", retain=True)
         logger.debug(f"publication to mqtt.docker.local complete")
 
 
