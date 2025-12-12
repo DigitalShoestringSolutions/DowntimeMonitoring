@@ -1,40 +1,29 @@
+# Recipe format compatibility check i.e. what versions of the assembler does this recipe work with? 
 recipe_vsn = "1.0.0"
 
+
+
+# About the solution as a whole
 [solution]
     name = "Downtime Monitoring"
     slug = "downtime"
-    version = "3.0.0"
+    version = "3.1.0"
     description = "Shoestring Downtime Monitoring Solution"
 
 
 
-[source.grafana]
-    git.path = "sm_grafana_ui"
-    git.tag = "v2.0.0"
-[source.data_storage]
-    git.path = "django_relational_db"
-    git.tag = "v1.0.0"
-[source.user_input]
-    git.path = "react_ui"
-    git.tag = "v1.0.0"
-# [source.sensor_adaptor]
-#     file.path = "./custom_service_modules/sensor_adaptor"
-#     file.mode = "link"
+# Service module instances present in this solution
+[service_module.analysis]
+    source = "analysis"
+    containers = ["analysis-sm"]
+    ports.analysis-sm.api = 8000
+    alias.analysis-sm = "analysis"
+    template.log_level = "info"
 
-
-
-[source.mqtt_broker]
-    git.path = "sm_mqtt_broker"
-    git.tag = "v2.0.0"
-[source.logging]
-    git.path = "Logging"
-    git.tag = "v1.0.0"
-[source.plink]
-    git.path = "PlatformLink"
-    git.tag = "v1.0.0"
-
-
-
+[service_module.sensing]
+    source="sensing"
+    containers = ["sensing"]
+    template.log_level = "info"
 
 [service_module.db]
     source = "data_storage"
@@ -53,19 +42,16 @@ recipe_vsn = "1.0.0"
     containers = ["webserver"]
     ports.webserver.ui = 80
 
-# [service_module.sensor_adaptor]
-#     source = "sensor_adaptor"
-#     containers = ["app"]
-#     ports.app.ui = 1880
 
 
-
+# Infrastructure modules present in this solution
 [infrastructure.mqtt-broker]
     source = "mqtt_broker"
     containers = ["broker"]
     ports.broker.tcp = 1883
     ports.broker.websocket = 9001
     alias.broker = "mqtt"
+
 [infrastructure.logging]
     source = "logging"
     containers = ["alloy","loki"]
@@ -73,8 +59,44 @@ recipe_vsn = "1.0.0"
     alias.loki = "loki"
     alias.alloy = "alloy"
     volume.alloy.docker_sock = "/var/run/docker.sock"
+
 [infrastructure.platform_link]
     source = "plink"
     containers = ["link"]
     ports.link.ui = 5000
     alias.link = "platform_link"
+
+
+
+# Available module code sources which can feed the above instances
+[source.sensing]
+    git.path = "sm_SensingDC"
+    git.tag = "v1.5.0"
+
+[source.grafana]
+    git.path = "sm_grafana_ui"
+    git.tag = "v2.0.0"
+
+[source.data_storage]
+    git.path = "django_relational_db"
+    git.tag = "v1.0.0"
+
+[source.user_input]
+    git.path = "react_ui"
+    git.tag = "v1.0.0"
+
+[source.analysis]
+    git.path = "sm_analysis"
+    git.tag = "v0.2.2"
+
+[source.mqtt_broker]
+    git.path = "sm_mqtt_broker"
+    git.tag = "v2.0.0"
+
+[source.logging]
+    git.path = "Logging"
+    git.tag = "v1.0.0"
+
+[source.plink]
+    git.path = "PlatformLink"
+    git.tag = "v1.0.0"
