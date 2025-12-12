@@ -18,6 +18,10 @@ recipe_vsn = "1.0.0"
     containers = ["analysis-sm"]
     ports.analysis-sm.api = 8000
     alias.analysis-sm = "analysis"
+
+[service_module.sensing]
+    source="sensing"
+    containers = ["sensing"]
     template.log_level = "info"
 
 [service_module.db]
@@ -64,6 +68,10 @@ recipe_vsn = "1.0.0"
 
 
 # Available module code sources which can feed the above instances
+[source.sensing]
+    git.path = "sm_SensingDC"
+    git.tag = "v1.5.0"
+
 [source.grafana]
     git.path = "sm_grafana_ui"
     git.tag = "v2.0.0"
