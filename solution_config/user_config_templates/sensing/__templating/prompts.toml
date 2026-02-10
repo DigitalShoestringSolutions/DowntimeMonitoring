@@ -30,8 +30,15 @@
   type = "text"
   prompt = "Choose a name for this machine"
 
-[Q.digin_device]
+[Q.sensor_type]
   criteria = "enabled=true"
+  type = "select"
+  prompt = "Which type of sensor are you using to monitor the machine's running status?"
+  opt.digital_input = "Digital input (e.g. running light)"
+  opt.current_clamp = "Current clamp (detect machine running from current draw)"
+
+[Q.digin_device]
+  criteria = "enabled=true & sensor_type=digital_input"
   type = "select"
   prompt = "Which digital input device are you using"
   opt.Sequent8DigitalInputs = "Sequent 8 channel High Voltage Digital Inputs"
@@ -39,9 +46,71 @@
   #opt.seq_uni = "Sequent 16 channel Universal Inputs ADC"
 
 [Q.channel]
-  criteria = "enabled=true"
+  criteria = "enabled=true & sensor_type=digital_input"
   type = "text"
   prompt = "Which digital input channel is the machine's running light plugged into?"
+
+
+[Q.variant]
+  criteria = "enabled=true & sensor_type=current_clamp"
+  type = "select"
+  prompt = "Which power monitoring variant are you deploying?"
+  opt.basic = "basic"
+  opt.intermediate = "intermediate"
+  opt.advanced = "advanced"
+  opt.simulator = "simulator"
+
+[Q.adc]
+  criteria = "variant=basic"
+  type = "select"
+  prompt = "Which ADC are you using?"
+  opt.grove_1 = "Grove ADC v1.0"
+  opt.grove_11 = "Grove ADC v1.1"
+  opt.ads = "ADS1115"
+  opt.bcr = "BC Robotics"
+  opt.sequent = "Sequent 16 channel Universal Inputs ADC"
+
+[Q.phases]
+  criteria = "variant=intermediate | variant=advanced"
+  type = "select"
+  prompt = "How many phases are you monitoring?"
+  opt.1p = "single phase"
+  opt.3p = "three phase"
+
+[Q.setup_basic]
+  criteria = "variant=basic"
+  type = "select"
+  prompt = "Which sensing configuration are you using?"
+  opt.1p = "Single phase"
+  opt.3b = "Three phase balanced (single clamp)"
+  opt.3u = "Three phase unbalanced"
+  opt.dc = "Gravity DC current sensor" 
+
+[Q.clamp_rating]
+  criteria = "variant=basic"
+  type = "text"
+  prompt = "What is the rating of the current clamp being used?"
+
+[Q.adc_channel_0]
+  criteria = "variant=basic"
+  type = "text"
+  prompt = "Which ADC channel is the first current clamp plugged into?"
+
+[Q.adc_channel_1]
+  criteria = "variant=basic & setup_basic=3u"
+  type = "text"
+  prompt = "Which ADC channel is the second current clamp plugged into?"
+
+[Q.adc_channel_2]
+  criteria = "variant=basic & setup_basic=3u"
+  type = "text"
+  prompt = "Which ADC channel is the third current clamp plugged into?"
+
+[Q.mqtt_broker]
+  criteria = "enabled=true & sensor_type=current_clamp"
+  type = "text"
+  prompt = "Which MQTT broker should the current sensing module send the data to?"
+
 
 
 [OUT.module_enabled_out]
@@ -51,14 +120,135 @@
   var = "machine_name"
 
 [[OUT.module_config_file_out.map]]
-  criteria = "digin_device = Sequent8DigitalInputs | digin_device = Sequent16DigitalInputs"
+  criteria = "sensor_type=digital_input & ( digin_device = Sequent8DigitalInputs | digin_device = Sequent16DigitalInputs)"
   value = "downtime_sequent.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=simulator"
+  value = "pm_b_3pu_mock.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=grove_1 & setup_basic=1p"
+  value = "pm_b_1p_grove_v1.0.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=grove_1 & setup_basic=3b"
+  value = "pm_b_3pb_grove_v1.0.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=grove_1 & setup_basic=3u"
+  value = "pm_b_3pu_grove_v1.0.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=grove_1 & setup_basic=dc"
+  value = "pm_dc_gravity_grove_v1.0.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=grove_11 & setup_basic=1p"
+  value = "pm_b_1p_grove_v1.1.toml"  
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=grove_11 & setup_basic=3b"
+  value = "pm_b_3pb_grove_v1.1.toml" 
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=grove_11 & setup_basic=3u"
+  value = "pm_b_3pu_grove_v1.1.toml" 
+
+[[OUT.module_config_file_out.map]]
+  criteria = "variant=basic & adc=grove_11 & setup_basic=dc"
+  value = "pm_dc_gravity_grove_v1.1.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=ads & setup_basic=1p"
+  value = "pm_b_1p_ads1115.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=ads & setup_basic=3b"
+  value = "pm_b_3pb_ads1115.toml"  
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=ads & setup_basic=3u"
+  value = "pm_b_3pu_ads1115.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=ads & setup_basic=dc"
+  value = "pm_dc_gravity_ads1115.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "variant=basic & adc=bcr & setup_basic=1p"
+  value = "pm_b_1p_bc_robotics.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=bcr & setup_basic=3b"
+  value = "pm_b_3pb_bc_robotics.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=bcr & setup_basic=3u"
+  value = "pm_b_3pu_bc_robotics.toml" 
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=bcr & setup_basic=dc"
+  value = "pm_dc_gravity_bc_robotics.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=sequent & setup_basic=1p"
+  value = "pm_b_1p_sequent.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=sequent & setup_basic=3b"
+  value = "pm_b_3pb_sequent.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=basic & adc=sequent & setup_basic=3u"
+  value = "pm_b_3pu_sequent.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=intermediate & phases=1p"
+  value = "pm_i_1p.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=intermediate & phases=3p"
+  value = "pm_i_3p.toml"
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=advanced & phases=1p"
+  value = "pm_a_1p.toml" 
+
+[[OUT.module_config_file_out.map]]
+  criteria = "sensor_type=current_clamp & variant=advanced & phases=3p"
+  value = "pm_a_3p.toml"
+
+[OUT.sensor_type_out]
+  var = "sensor_type"
 
 [OUT.device_class_out]
   var = "digin_device"
 
 [OUT.channel_out]
   var = "channel" 
+
+
+[OUT.variant]
+  var = "variant"
+
+[OUT.clamp_rating]
+  var = "clamp_rating"
+
+[OUT.adc_channel_0]
+  var = "adc_channel_0" 
+
+[OUT.setup_basic]
+  var = "setup_basic"
+
+[OUT.adc_channel_1]  
+  var = "adc_channel_1"
+
+[OUT.adc_channel_2]
+  var = "adc_channel_2"
+
+[OUT.mqtt_broker]
+  var = "mqtt_broker"
 
 # Note: The following lines are examples of how to reference the answers in the user configuration template.
 # For example, in user_config.toml, you can use {{machine_name}} to insert the machine name provided by the user.

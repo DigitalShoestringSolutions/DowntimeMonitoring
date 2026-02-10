@@ -1,0 +1,83 @@
+#=-= Define Interface Modules =-=
+[interface.mb1]
+    module="modbus"
+    class="ModbusTCPAsync"
+[interface.mb1.config]
+    adapter_addr="192.168.0.7"
+    adapter_port=502
+
+#=-= Define Device Modules =-=
+[device.mfm1]
+    module="multi_function_meter_HOBUT"
+    class="HOBUT_850_LTHN"
+    interface="mb1"
+[device.mfm1.config]
+    slave_id=1
+[device.mfm1.variables]
+    I1 = "current_rms"
+    V1 = "measured_phase_voltage"
+    power_real = "power_real"
+    power_reactive = "power_reactive"
+    power_apparent = "power_apparent"
+    frequency = "frequency"
+    PF = "PF"
+
+
+#=-= Define Calculation Modules =-=
+[calculation.machine_name]
+    module="gen_constants"
+    class="ConstantSet"
+[calculation.machine_name.config]
+    machine = "Machine_1"
+[calculation.machine_name.variables]
+
+
+#=-= Define Calculation Pipelines =-=
+[pipelines]
+    pipeline = ["machine_name"]
+
+#=-= Define Measurements Pipelines =-=
+[measurement]
+    module="gen_sample"
+    class="SingleSample"
+[measurement.config]
+    period = 1.0 # seconds
+[[measurement.sensing_stacks]]
+    device = "mfm1"
+    pipeline = "pipeline"
+    constants = {'phase'='single'}
+
+[output.overall]
+    topic = "power_monitoring/{{machine}}"
+[output.overall.message_spec]
+    timestamp = '$.timestamp'
+    machine = "$.machine"
+    power_real = '$.power_real'
+    power_reactive = '$.power_reactive'
+    power_apparent = '$.power_apparent'
+    frequency = '$.frequency'
+    power_factor = '$.PF'
+    
+[output.single_phase]
+    topic = "power_monitoring/{{machine}}/{{phase}}"
+[output.single_phase.message_spec]
+    machine = "$.machine"
+    timestamp = '$.timestamp'
+    current = "$.current_rms"
+    voltage = "$.measured_phase_voltage"
+    phase = "$.phase"
+
+[mqtt]
+    broker = "mqtt.docker.local"
+    port = 1883   #common mqtt ports are 1883 and 8883
+    topic_prefix = ""
+
+    #reconnection characteristics
+    # start: timeout = initial,
+    # if timeout < limit then
+    #   timeout = timeout*backoff
+    # else
+    #   timeout = limit
+    reconnect.initial = 5 # seconds
+    reconnect.backoff = 2 # multiplier
+    reconnect.limit = 60 # seconds
