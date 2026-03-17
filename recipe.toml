@@ -7,18 +7,30 @@ recipe_vsn = "1.0.0"
 [solution]
     name = "Downtime Monitoring"
     slug = "downtime"
-    version = "3.1.1"
+    version = "3.1.2"
     description = "Shoestring Downtime Monitoring Solution"
 
 
 
 # Service module instances present in this solution
-[service_module.analysis]
+[service_module.analysis-1]
     source = "analysis"
     containers = ["analysis-sm"]
     ports.analysis-sm.api = 8000
-    alias.analysis-sm = "analysis"
     template.log_level = "info"
+
+# [service_module.analysis-2]
+#     source = "analysis"
+#     containers = ["analysis-sm"]
+#     ports.analysis-sm.api = 9000
+#     template.log_level = "info"
+
+# [service_module.analysis-3]
+#     source = "analysis"
+#     containers = ["analysis-sm"]
+#     ports.analysis-sm.api = 10000
+#     template.log_level = "info"
+
 
 [service_module.sensing]
     source="sensing"
