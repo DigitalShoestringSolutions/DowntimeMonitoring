@@ -12,6 +12,11 @@ recipe_vsn = "1.0.0"
 
 
 
+[service_module.sensing]
+    source="sensing"
+    containers = ["sensing"]
+    template.log_level = "info"
+
 # Service module instances present in this solution
 [service_module.analysis-1]
     source = "analysis"
@@ -30,12 +35,6 @@ recipe_vsn = "1.0.0"
 #     containers = ["analysis-sm"]
 #     ports.analysis-sm.api = 10000
 #     template.log_level = "info"
-
-
-[service_module.sensing]
-    source="sensing"
-    containers = ["sensing"]
-    template.log_level = "info"
 
 [service_module.db]
     source = "data_storage"
@@ -91,7 +90,7 @@ recipe_vsn = "1.0.0"
 
 [source.data_storage]
     git.path = "django_relational_db"
-    git.tag = "v1.0.0"
+    git.tag = "v1.1.0"
 
 [source.user_input]
     git.path = "react_ui"
@@ -107,7 +106,7 @@ recipe_vsn = "1.0.0"
 
 [source.logging]
     git.path = "Logging"
-    git.tag = "v1.0.0"
+    git.tag = "v1.0.1"
 
 [source.plink]
     git.path = "PlatformLink"

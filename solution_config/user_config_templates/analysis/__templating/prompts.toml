@@ -21,27 +21,39 @@
 #       opt.<value> = "<option_text>" 
 #       opt.<next_value> = "<next_option_text>"  
 
+[Q.enabled]
+  type = "bool"
+  prompt = "Enable analysis module?"
 
 [Q.sensorbroker]
-type="text"
-prompt="MQTT broker name / IP address of where the sensor data can be found."
+  criteria = "enabled=true"
+    type="text"
+    prompt="MQTT broker name / IP address of where the sensor data can be found."
 
 [Q.sensortopic]
-type="text"
-prompt="MQTT topic containing the sensor data. Typically includes the machine name."
+  criteria = "enabled=true"
+    type="text"
+    prompt="MQTT topic containing the sensor data. Typically includes the machine name."
 
 [Q.param]
-type="text"
-prompt="Parameter in the MQTT message containing the numerical data to compare to the threshold."
+  criteria = "enabled=true"
+    type="text"
+    prompt="Parameter in the MQTT message containing the numerical data to compare to the threshold."
 
 [Q.thresh]
-type="text"
-prompt="Threshold value. Above this, the machine is running."
+  criteria = "enabled=true"
+    type="text"
+    prompt="Threshold value. Above this, the machine is running."
 
 [Q.machine_id]
-type="text"
-prompt="UUID of the machine to create downtime events on. Get this from the admin page when the downtime monitoring solution is running."
+  criteria = "enabled=true"
+    type="text"
+    prompt="UUID of the machine to create downtime events on. Get this from the admin page when the downtime monitoring solution is running."
 
+
+
+[OUT.module_enabled_out]
+  var = "enabled"
 
 [OUT.sensor_broker]
 var="sensorbroker"

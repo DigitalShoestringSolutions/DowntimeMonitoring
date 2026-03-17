@@ -1,5 +1,11 @@
 # One sensor adapter instance per sensor-machine link.
 
+{% if module_enabled_out == true %}
+module_enabled = true
+{% else %}
+module_enabled = false
+{% endif %}
+
 input_broker = "{{sensor_broker}}"  # this path required by MQTTTrigger. Otherwise I would put it under [sensor]
 
 [sensor]

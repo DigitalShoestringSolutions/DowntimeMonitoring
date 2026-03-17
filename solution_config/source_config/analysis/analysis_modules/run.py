@@ -15,6 +15,8 @@ from trigger.engine import TriggerEngine
 import config_manager
 import paho.mqtt.publish as pahopublish
 import json
+import time
+import sys
 
 
 # Parse command-line arguments and configure logging again based on those
@@ -26,6 +28,11 @@ logger = logging.getLogger(__name__)
 config = config_manager.get_config(
     args.get("module_config_file"), args.get("user_config_file")
 )
+
+if config.get("module_enabled") == False:
+    logger.info("Analysis module is disabled, sleeping for an hour before restarting")
+    time.sleep(3600)
+    sys.exit(0)
 
 # Initialize the trigger engine with loaded configuration
 trigger = TriggerEngine(config)
