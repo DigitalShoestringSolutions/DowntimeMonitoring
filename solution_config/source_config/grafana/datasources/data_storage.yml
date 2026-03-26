@@ -13,5 +13,6 @@ datasources:
     version: 1
     editable: true
     access: proxy
-    url: tcp://mqtt.docker.local:1883
     uid: mqtt_direct
+    jsonData:
+      uri: tcp://mqtt.docker.local:1883

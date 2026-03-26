@@ -5,16 +5,13 @@ class StateConfig(AppConfig):
     name = 'state'
 
     def ready(self):
-        # post_migrate.connect(create_defaults,sender=self)
+        post_migrate.connect(create_defaults,sender=self)
         pass
 
 
-# def create_defaults(sender, **kwargs):
-#     from . import models
-#     if models.Locations.objects.all().count() == 0:
-#         for name in ["Location 1","Location 2","Location 3","Complete"]:
-#             _, created = models.Location.objects.get_or_create(name=name)
-#             if created:
-#                 print(f'Added location "{name}"')
-#             else:
-#                 print(f'Location "{name}" already exists')
+def create_defaults(sender, **kwargs):
+    from . import models
+    print("Checking initial machine")
+    if models.Machine.objects.all().count() == 0:
+        models.Machine.objects.create(id="fdad651c-0c52-415d-bcdc-0dbc6d6f8d29", name="Machine 1")
+        print("Created initial machine")

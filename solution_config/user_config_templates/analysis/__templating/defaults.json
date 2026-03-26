@@ -1,7 +1,7 @@
 {
     "sensorbroker" : "mqtt.docker.local",
-    "sensortopic" : "power_monitoring/your_machine_name/A",
+    "sensortopic" : "power_monitoring/machine_name_here/A",
     "param" : "current",
     "thresh" : 3,
-    "machine_id" : "your_machine_downtime_uuid"
+    "machine_id" : "fdad651c-0c52-415d-bcdc-0dbc6d6f8d29"
 }
