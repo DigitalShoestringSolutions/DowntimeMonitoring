@@ -8,3 +8,10 @@ datasources:
     access: proxy
     url: http://data-storage.docker.local:80
     uid: json_api
+  - name: MQTT Direct
+    type: grafana-mqtt-datasource
+    version: 1
+    editable: true
+    access: proxy
+    url: tcp://mqtt.docker.local:1883
+    uid: mqtt_direct
