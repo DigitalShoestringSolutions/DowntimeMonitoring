@@ -12,12 +12,12 @@ import datetime
 
 # Internal module imports
 from trigger.engine import TriggerEngine
+from analysis.threshold import apply_threshold
 import config_manager
 import paho.mqtt.publish as pahopublish
 import json
 import time
 import sys
-
 
 # Parse command-line arguments and configure logging again based on those
 args = config_manager.handle_args()
@@ -38,17 +38,28 @@ if config.get("module_enabled") == False:
 trigger = TriggerEngine(config)
 
 ## -------------
-
-# Default values for global variables
-OldRunningVal = None # value (bool) will be added after first comparision
-OldRunningTime = "2021-01-01T00:00:00+00:00" # timestamp when status was last published. Default to a time in the past that will parse
-
 # Load config - outside of function
-#broker = config["sensor"]["broker"]  # not needed here - input_broker is passed directly to MQTTTrigger via trigger.engine.mqtt ...
+# broker = config["sensor"]["broker"]  # not needed here - input_broker is passed directly to MQTTTrigger via trigger.engine.mqtt ...
 topic = config["sensor"]["topic"]
-parameter_name = config["thresholds"]["parameter"]
-threshold = float(config["thresholds"]["value"])
 target = config["output"]["target"]
+mqtt_host = config.get("mqtt", {}).get("broker", "mqtt.docker.local")
+
+# Construct threshold engine configuration mapping target machine ID
+threshold_config = {
+    target: {
+        "threshold_value": float(config["thresholds"]["value"]),
+        "threshold_parameter_name": config["thresholds"]["parameter"],
+        "timestamp_parameter_name": config["thresholds"].get(
+            "timestamp_parameter", "timestamp"
+        ),
+        "smoothing_factor": float(config["thresholds"].get("smoothing_factor", 1.0)),
+        "debounce_seconds": float(config["thresholds"].get("debounce_seconds", 0.0)),
+        "retransmit_interval_seconds": float(
+            config["thresholds"].get("retransmit_interval", 3600.0)
+        ),
+    }
+}
+
 
 # Main function
 @trigger.mqtt.event(topic)
@@ -59,63 +70,38 @@ async def thresholds(topic, payload, config={}):
     :param dict payload: The payload of the incomming MQTT message, expecting json loaded as dict
     :param dict config:  (optional) The module config (not used)
     """
-    global OldRunningVal  # allow this func to save previous value in global variable
-    global OldRunningTime
+    eval_threshold = apply_threshold(threshold_config, target)
 
-    # extract sensor reading and timestamp from payload
-    parameter_value = float(payload[parameter_name])
-    timestamp = payload["timestamp"]
+    result = await eval_threshold(payload)
 
-    # Also extract other info that won't be used
-    machine = payload.get("machine", target)  # use UUID from config if no machine name found in sensor MQTT message
-    logger.debug(f"Downtime thresholds comparison received parameter {parameter_name} value {parameter_value} on topic {topic} for machine {machine} at {timestamp}, comparing to threshold {threshold}")
+    if result is None:
+        logger.debug(
+            f"No output required (state unchanged or debouncing) for topic {topic}"
+        )
+        return
 
-    # compare reading to thresholds
-    if parameter_value > threshold:
-        Running = True
-    else:
-        Running = False
-    logger.debug(f"Running status for machine {machine} calculated as {Running}")
+    running, event_ts = result
+    formatted_ts = event_ts.isoformat()
 
-    # iif results have changed, or previous output was more than 1h ago, publish result.
-    SendUpdate = False
-    if (Running != OldRunningVal):
-        SendUpdate = True
-        logger.info(f"Machine {machine} id {target} running status changed to {Running} as {parameter_name} passing threshold {threshold} at {timestamp}")
+    output_payload = {
+        "timestamp": formatted_ts,
+        "machine": target,
+        "running": running,
+        "source": "sensor",
+    }
 
-    if (datetime.datetime.fromisoformat(timestamp) > (datetime.datetime.fromisoformat(OldRunningTime) + datetime.timedelta(hours=1))):
-        SendUpdate = True
-        logger.info(f"Sending repeat RunningVal {Running} message for machine {machine} as previous update was > 1h ago")
+    output_topic = f"downtime/event/{target}/" + ("start" if running else "stop")
 
-    if SendUpdate:
-        # Prepare message variables
-        output_payload = {
-            "timestamp"     : timestamp,
-            "machine"       : target,  # duplicate with topic? As usual.
-            "running"       : Running,
-            "source"        : "sensor"
-        }
-
-        topic = 'downtime/event/' + target
-        if Running:
-            topic = topic + '/start'
-        else:
-            topic = topic + '/stop'
-
-
-        # Publish to MQTT
-        logger.debug(f"Publishing machine {machine} RunningVal {Running} to mqtt.docker.local topic: {target}")
-        pahopublish.single(topic=topic, payload=json.dumps(output_payload), hostname="mqtt.docker.local", retain=True)
-        logger.debug(f"publication to mqtt.docker.local complete")
-
-
-    else:
-        logger.debug(f"RunningVal {Running} for machine {machine} unchanged, not publishing")
-
-
-    # Save result for next time
-    OldRunningVal = Running
-    OldRunningTime = timestamp
+    logger.debug(
+        f"Publishing machine {target} running={running} at {formatted_ts} to {mqtt_host} topic: {output_topic}"
+    )
+    pahopublish.single(
+        topic=output_topic,
+        payload=json.dumps(output_payload),
+        hostname=mqtt_host,
+        retain=True,
+    )
+    logger.debug("Publication to MQTT complete")
 
 
 # Start the trigger engine and its scheduler/event loops

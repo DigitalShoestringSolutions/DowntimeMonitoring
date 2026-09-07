@@ -15,6 +15,9 @@ topic = "{{sensor_mqtt_topic}}"
 [thresholds]
 parameter = "{{mqtt_payload_json_key}}"
 value = {{threshold_value}}
+smoothing_factor = {{smoothing_factor}}
+debounce_seconds = {{debounce_seconds}}
+retransmit_interval_seconds = {{retransmit_interval_seconds}}
 # Comparison is hard-coded to running when parameter is greater than value
 
 [output]

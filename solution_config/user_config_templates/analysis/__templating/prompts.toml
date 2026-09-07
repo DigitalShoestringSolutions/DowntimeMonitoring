@@ -45,12 +45,25 @@
     type="text"
     prompt="Threshold value. Above this, the machine is running."
 
+[Q.smoothing_factor]
+  criteria = "enabled=true"
+    type="text"
+    prompt="EMA smoothing factor (between 0 and 1) 1 is no smoothing. If signal noisy try 0.1."
+
+[Q.debounce_seconds]
+  criteria = "enabled=true"
+    type="text"
+    prompt="Number of seconds the threshold output needs to be stable for. (default: 0 seconds for no debounce)"
+
+[Q.retransmit_interval_seconds]
+  criteria = "enabled=true"
+    type="text"
+    prompt="How often the current state is resent when stable in seconds. (default 3600 for 10 minutes)."
+
 [Q.machine_id]
   criteria = "enabled=true"
     type="text"
     prompt="UUID of the machine to create downtime events on. Get this from the admin page when the downtime monitoring solution is running."
-
-
 
 [OUT.module_enabled_out]
   var = "enabled"
@@ -63,6 +76,15 @@ var="sensortopic"
 
 [OUT.mqtt_payload_json_key]
 var="param"
+
+[OUT.smoothing_factor]
+var="smoothing_factor"
+
+[OUT.debounce_seconds]
+var="debounce_seconds"
+
+[OUT.retransmit_interval_seconds]
+var="retransmit_interval_seconds"
 
 [OUT.threshold_value]
 var="thresh"

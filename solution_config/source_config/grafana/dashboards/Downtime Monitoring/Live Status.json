@@ -1,0 +1,203 @@
+{
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
+                },
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+            }
+        ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 9,
+    "links": [
+        {
+            "asDropdown": true,
+            "icon": "external link",
+            "includeVars": false,
+            "keepTime": false,
+            "tags": [
+                "downtime"
+            ],
+            "targetBlank": false,
+            "title": "Dashboards",
+            "tooltip": "",
+            "type": "dashboards",
+            "url": ""
+        }
+    ],
+    "panels": [
+        {
+            "datasource": {
+                "type": "marcusolsson-json-datasource",
+                "uid": "json_api"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "inspect": false
+                    },
+                    "mappings": [
+                        {
+                            "options": {
+                                "false": {
+                                    "color": "red",
+                                    "index": 1,
+                                    "text": "Stopped"
+                                },
+                                "true": {
+                                    "color": "green",
+                                    "index": 0,
+                                    "text": "Running"
+                                }
+                            },
+                            "type": "value"
+                        }
+                    ],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Duration"
+                        },
+                        "properties": [
+                            {
+                                "id": "unit",
+                                "value": "dateTimeFromNow"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Status"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "color-background"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 20,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 2,
+            "options": {
+                "cellHeight": "sm",
+                "footer": {
+                    "countRows": false,
+                    "enablePagination": false,
+                    "fields": "",
+                    "reducer": [
+                        "sum"
+                    ],
+                    "show": false
+                },
+                "showHeader": true
+            },
+            "pluginVersion": "11.1.3",
+            "targets": [
+                {
+                    "cacheDurationSeconds": 5,
+                    "datasource": {
+                        "type": "marcusolsson-json-datasource",
+                        "uid": "json_api"
+                    },
+                    "fields": [
+                        {
+                            "jsonPath": "$[*].target",
+                            "name": "Target"
+                        },
+                        {
+                            "jsonPath": "$[*].running",
+                            "language": "jsonpath",
+                            "name": "Status"
+                        },
+                        {
+                            "jsonPath": "$[*].start",
+                            "language": "jsonpath",
+                            "name": "Duration"
+                        }
+                    ],
+                    "method": "GET",
+                    "params": [
+                        [
+                            "pretty",
+                            "true"
+                        ]
+                    ],
+                    "queryParams": "",
+                    "refId": "A",
+                    "urlPath": "/state/"
+                }
+            ],
+            "title": "Machine Status",
+            "transformations": [
+                {
+                    "id": "sortBy",
+                    "options": {
+                        "fields": {},
+                        "sort": [
+                            {
+                                "field": "Target"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "type": "table"
+        }
+    ],
+    "refresh": "5s",
+    "schemaVersion": 39,
+    "tags": [
+        "downtime"
+    ],
+    "templating": {
+        "list": []
+    },
+    "time": {
+        "from": "now-5m",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Live Status",
+    "uid": "afrzvviyuyk1sc",
+    "version": 7,
+    "weekStart": ""
+}

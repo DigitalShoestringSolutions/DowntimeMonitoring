@@ -21,20 +21,44 @@ recipe_vsn = "1.0.0"
 [service_module.analysis-1]
     source = "analysis"
     containers = ["analysis-sm"]
-    ports.analysis-sm.api = 8000
+    ports.analysis-sm.api = 10001
     template.log_level = "info"
 
-# [service_module.analysis-2]
-#     source = "analysis"
-#     containers = ["analysis-sm"]
-#     ports.analysis-sm.api = 9000
-#     template.log_level = "info"
+[service_module.analysis-2]
+    source = "analysis"
+    containers = ["analysis-sm"]
+    ports.analysis-sm.api = 10002
+    template.log_level = "debug"
 
-# [service_module.analysis-3]
-#     source = "analysis"
-#     containers = ["analysis-sm"]
-#     ports.analysis-sm.api = 10000
-#     template.log_level = "info"
+#[service_module.analysis-3]
+#    source = "analysis"
+#    containers = ["analysis-sm"]
+#    ports.analysis-sm.api = 10003
+#    template.log_level = "info"
+
+#[service_module.analysis-4]
+#    source = "analysis"
+#    containers = ["analysis-sm"]
+#    ports.analysis-sm.api = 10004
+#    template.log_level = "info"
+
+#[service_module.analysis-5]
+#    source = "analysis"
+#    containers = ["analysis-sm"]
+#    ports.analysis-sm.api = 10005
+#    template.log_level = "info"
+
+#[service_module.analysis-6]
+#    source = "analysis"
+#    containers = ["analysis-sm"]
+#    ports.analysis-sm.api = 10006
+#    template.log_level = "info"
+
+#[service_module.analysis-7]
+#    source = "analysis"
+#    containers = ["analysis-sm"]
+#    ports.analysis-sm.api = 10007
+#    template.log_level = "info"
 
 [service_module.db]
     source = "data_storage"
@@ -98,7 +122,7 @@ recipe_vsn = "1.0.0"
 
 [source.analysis]
     git.path = "sm_analysis"
-    git.tag = "v0.2.2"
+    git.tag = "v0.2.4"
 
 [source.mqtt_broker]
     git.path = "sm_mqtt_broker"
