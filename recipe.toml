@@ -118,7 +118,7 @@ recipe_vsn = "1.0.0"
 
 [source.user_input]
     git.path = "react_ui"
-    git.tag = "v1.0.0"
+    git.tag = "v1.1.2"
 
 [source.analysis]
     git.path = "sm_analysis"
