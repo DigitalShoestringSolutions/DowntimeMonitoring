@@ -1,3 +1,4 @@
+#prompts.toml
 # This file defines the questions that will be asked to generate a user configuration file.
 # Each question has a unique key, a type, and other parameters depending on the type.
 # The criteria field is used to determine when a question should be asked, based on previous answers.
@@ -27,73 +28,131 @@
 
 [Q.sensorbroker]
   criteria = "enabled=true"
-    type="text"
-    prompt="MQTT broker name / IP address of where the sensor data can be found."
+  type = "text"
+  prompt = "MQTT broker name / IP address of where the sensor data can be found."
 
 [Q.sensortopic]
   criteria = "enabled=true"
-    type="text"
-    prompt="MQTT topic containing the sensor data. Typically includes the machine name."
+  type = "text"
+  prompt = "MQTT topic containing the sensor data. Typically includes the machine name."
 
 [Q.param]
   criteria = "enabled=true"
-    type="text"
-    prompt="Parameter in the MQTT message containing the numerical data to compare to the threshold."
+  type = "text"
+  prompt = "Parameter in the MQTT message containing the numerical data to compare to the threshold."
+
+[Q.mode]
+  criteria = "enabled=true"
+  type = "select"
+  prompt = "Threshold evaluation mode."
+  opt.ema_debounce = "EMA + Debounce (smooth signal and require continuous time above threshold)"
+  opt.leaky_integrator = "Leaky Integrator (accumulate excess above threshold over time, drain when below)"
+  opt.pure_integrator = "Pure Integrator (integrate rate over time into cumulative or rolling-window total)"
 
 [Q.thresh]
   criteria = "enabled=true"
-    type="text"
-    prompt="Threshold value. Above this, the machine is running."
+  type = "text"
+  prompt = "Threshold value. (EMA/Leaky: rate threshold above which machine is running; Pure Integrator: integrated total threshold)."
 
+# --- EMA + Debounce questions ---
 [Q.smoothing_factor]
-  criteria = "enabled=true"
-    type="text"
-    prompt="EMA smoothing factor (between 0 and 1) 1 is no smoothing. If signal noisy try 0.1."
+  criteria = "enabled=true & mode=ema_debounce"
+  type = "text"
+  prompt = "EMA smoothing factor (between 0 and 1). 1 is no smoothing. If signal noisy try 0.1. (default: 1.0)"
 
 [Q.debounce_seconds]
-  criteria = "enabled=true"
-    type="text"
-    prompt="Number of seconds the threshold output needs to be stable for. (default: 0 seconds for no debounce)"
+  criteria = "enabled=true & mode=ema_debounce"
+  type = "text"
+  prompt = "Number of seconds the threshold output needs to be stable for. (default: 0 seconds for no debounce)"
+
+# --- Leaky Integrator questions ---
+[Q.integral_threshold]
+  criteria = "enabled=true & mode=leaky_integrator"
+  type = "text"
+  prompt = "Cumulative (excess * seconds) required to trigger running state (must be > 0)."
+
+[Q.decay_rate]
+  criteria = "enabled=true & mode=leaky_integrator"
+  type = "text"
+  prompt = "Decay rate multiplier when below threshold (1.0 = symmetric cooldown, 0.5 = half-speed cooldown, 0 = no decay). (default: 1.0)"
+
+[Q.integral_max]
+  criteria = "enabled=true & mode=leaky_integrator"
+  type = "text"
+  prompt = "Optional anti-windup ceiling for the accumulated integral (leave blank for no cap)."
+
+# --- Pure Integrator questions ---
+[Q.integration_window_seconds]
+  criteria = "enabled=true & mode=pure_integrator"
+  type = "text"
+  prompt = "Rolling integration window in seconds (e.g. 3600 for trailing 1 hour; leave blank for cumulative total until reset)."
+
+[Q.integration_time_unit_seconds]
+  criteria = "enabled=true & mode=pure_integrator"
+  type = "text"
+  prompt = "Time unit divisor in seconds for the input rate (1 = per second, 60 = per minute, 3600 = per hour e.g. kW to kWh). (default: 1)"
+
+# --- Common integrator & output questions ---
+[Q.max_gap_seconds]
+  criteria = "enabled=true & (mode=leaky_integrator | mode=pure_integrator)"
+  type = "text"
+  prompt = "Optional max seconds allowed between samples to prevent false jumps after telemetry dropouts (leave blank for no cap)."
 
 [Q.retransmit_interval_seconds]
   criteria = "enabled=true"
-    type="text"
-    prompt="How often the current state is resent when stable in seconds. (default 3600 for 10 minutes)."
+  type = "text"
+  prompt = "How often the current state is resent when stable in seconds. (default: 3600)."
 
 [Q.machine_id]
   criteria = "enabled=true"
-    type="text"
-    prompt="UUID of the machine to create downtime events on. Get this from the admin page when the downtime monitoring solution is running."
+  type = "text"
+  prompt = "UUID of the machine to create downtime events on. Get this from the admin page when the downtime monitoring solution is running."
 
+# --- Output mappings ---
 [OUT.module_enabled_out]
   var = "enabled"
 
 [OUT.sensor_broker]
-var="sensorbroker"
+  var = "sensorbroker"
 
 [OUT.sensor_mqtt_topic]
-var="sensortopic"
+  var = "sensortopic"
 
 [OUT.mqtt_payload_json_key]
-var="param"
+  var = "param"
 
-[OUT.smoothing_factor]
-var="smoothing_factor"
-
-[OUT.debounce_seconds]
-var="debounce_seconds"
-
-[OUT.retransmit_interval_seconds]
-var="retransmit_interval_seconds"
+[OUT.threshold_mode]
+  var = "mode"
 
 [OUT.threshold_value]
-var="thresh"
+  var = "thresh"
+
+[OUT.smoothing_factor]
+  var = "smoothing_factor"
+
+[OUT.debounce_seconds]
+  var = "debounce_seconds"
+
+[OUT.integral_threshold]
+  var = "integral_threshold"
+
+[OUT.decay_rate]
+  var = "decay_rate"
+
+[OUT.integral_max]
+  var = "integral_max"
+
+[OUT.integration_window_seconds]
+  var = "integration_window_seconds"
+
+[OUT.integration_time_unit_seconds]
+  var = "integration_time_unit_seconds"
+
+[OUT.max_gap_seconds]
+  var = "max_gap_seconds"
+
+[OUT.retransmit_interval_seconds]
+  var = "retransmit_interval_seconds"
 
 [OUT.machine_uuid]
-var = "machine_id"
-
-# Note: The following lines are examples of how to reference the answers in the user configuration template.
-# For example, in user_config.toml, you can use {{machine_name}} to insert the machine name provided by the user.
-# module_config_file = "./module_config/{{module_config_file}}.toml"
-# calculation.machine_name.config.machine = "{{machine_name}}"
-# calculation.current_clamp.config.nominal_current = {{clamp_rating}}
+  var = "machine_id"

@@ -7,17 +7,18 @@ Use the recipe to create multiple sensor adaptor module instances if you would l
 
 """
 
-import logging
 import datetime
+import json
+import logging
+import sys
+import time
+from typing import Any, Optional
 
 # Internal module imports
-from trigger.engine import TriggerEngine
 from analysis.threshold import apply_threshold
 import config_manager
 import paho.mqtt.publish as pahopublish
-import json
-import time
-import sys
+from trigger.engine import TriggerEngine
 
 # Parse command-line arguments and configure logging again based on those
 args = config_manager.handle_args()
@@ -29,13 +30,20 @@ config = config_manager.get_config(
     args.get("module_config_file"), args.get("user_config_file")
 )
 
-if config.get("module_enabled") == False:
+if config.get("module_enabled") is False:
     logger.info("Analysis module is disabled, sleeping for an hour before restarting")
     time.sleep(3600)
     sys.exit(0)
 
 # Initialize the trigger engine with loaded configuration
 trigger = TriggerEngine(config)
+
+
+def _optional_float(val: Any) -> Optional[float]:
+    if val is None or val == "":
+        return None
+    return float(val)
+
 
 ## -------------
 # Load config - outside of function
@@ -44,21 +52,41 @@ topic = config["sensor"]["topic"]
 target = config["output"]["target"]
 mqtt_host = config.get("mqtt", {}).get("broker", "mqtt.docker.local")
 
+thresholds_cfg = config["thresholds"]
+
 # Construct threshold engine configuration mapping target machine ID
 threshold_config = {
     target: {
-        "threshold_value": float(config["thresholds"]["value"]),
-        "threshold_parameter_name": config["thresholds"]["parameter"],
-        "timestamp_parameter_name": config["thresholds"].get(
+        "mode": thresholds_cfg.get("mode", "ema_debounce"),
+        "threshold_value": float(thresholds_cfg["value"]),
+        "threshold_parameter_name": thresholds_cfg["parameter"],
+        "timestamp_parameter_name": thresholds_cfg.get(
             "timestamp_parameter", "timestamp"
         ),
-        "smoothing_factor": float(config["thresholds"].get("smoothing_factor", 1.0)),
-        "debounce_seconds": float(config["thresholds"].get("debounce_seconds", 0.0)),
+        # EMA + Debounce options
+        "smoothing_factor": float(thresholds_cfg.get("smoothing_factor", 1.0)),
+        "debounce_seconds": float(thresholds_cfg.get("debounce_seconds", 0.0)),
+        # Leaky Integrator options
+        "integral_threshold": _optional_float(thresholds_cfg.get("integral_threshold")),
+        "decay_rate": float(thresholds_cfg.get("decay_rate", 1.0)),
+        "integral_max": _optional_float(thresholds_cfg.get("integral_max")),
+        # Pure Integrator options
+        "integration_window_seconds": _optional_float(
+            thresholds_cfg.get("integration_window_seconds")
+        ),
+        "integration_time_unit_seconds": float(
+            thresholds_cfg.get("integration_time_unit_seconds", 1.0)
+        ),
+        # Common time-guard & retransmit options
+        "max_gap_seconds": _optional_float(thresholds_cfg.get("max_gap_seconds")),
         "retransmit_interval_seconds": float(
-            config["thresholds"].get("retransmit_interval", 3600.0)
+            thresholds_cfg.get("retransmit_interval", 3600.0)
         ),
     }
 }
+
+# Initialize evaluator at startup so invalid mode configurations fail fast
+eval_threshold = apply_threshold(threshold_config, target)
 
 
 # Main function
@@ -70,13 +98,11 @@ async def thresholds(topic, payload, config={}):
     :param dict payload: The payload of the incomming MQTT message, expecting json loaded as dict
     :param dict config:  (optional) The module config (not used)
     """
-    eval_threshold = apply_threshold(threshold_config, target)
-
     result = await eval_threshold(payload)
 
     if result is None:
         logger.debug(
-            f"No output required (state unchanged or debouncing) for topic {topic}"
+            f"No output required (state unchanged, debouncing, or integrating) for topic {topic}"
         )
         return
 

@@ -1,10 +1,17 @@
 {
-    "sensorbroker" : "mqtt.docker.local",
-    "sensortopic" : "power_monitoring/machine_name_here/A",
-    "param" : "current",
-    "thresh" : 3,
-    "machine_id" : "fdad651c-0c52-415d-bcdc-0dbc6d6f8d29",
+    "sensorbroker": "mqtt.docker.local",
+    "sensortopic": "power_monitoring/machine_name_here/A",
+    "param": "current",
+    "mode": "ema_debounce",
+    "thresh": 3,
     "smoothing_factor": 1.0,
-    "debounce_seconds": 0.0,
-    "retransmit_interval_seconds":3600
+    "debounce_seconds": 0,
+    "integral_threshold": 30.0,
+    "decay_rate": 1.0,
+    "integral_max": null,
+    "integration_window_seconds": null,
+    "integration_time_unit_seconds": 1.0,
+    "max_gap_seconds": 60.0,
+    "retransmit_interval_seconds": 3600,
+    "machine_id": "fdad651c-0c52-415d-bcdc-0dbc6d6f8d29"
 }

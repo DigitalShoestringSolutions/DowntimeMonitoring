@@ -13,12 +13,32 @@ topic = "{{sensor_mqtt_topic}}"
 
 
 [thresholds]
+mode = "{{threshold_mode if threshold_mode is defined and threshold_mode != "" else "ema_debounce"}}"
 parameter = "{{mqtt_payload_json_key}}"
-value = {{threshold_value}}
-smoothing_factor = {{smoothing_factor}}
-debounce_seconds = {{debounce_seconds}}
-retransmit_interval_seconds = {{retransmit_interval_seconds}}
-# Comparison is hard-coded to running when parameter is greater than value
+value = {{threshold_value if threshold_value is defined and threshold_value != "" else 0.0}}
+{% if threshold_mode == "leaky_integrator" %}
+integral_threshold = {{integral_threshold}}
+decay_rate = {{decay_rate if decay_rate is defined and decay_rate != "" else 1.0}}
+{% if integral_max is defined and integral_max != "" %}
+integral_max = {{integral_max}}
+{% endif %}
+{% if max_gap_seconds is defined and max_gap_seconds != "" %}
+max_gap_seconds = {{max_gap_seconds}}
+{% endif %}
+{% elif threshold_mode == "pure_integrator" %}
+{% if integration_window_seconds is defined and integration_window_seconds != "" %}
+integration_window_seconds = {{integration_window_seconds}}
+{% endif %}
+integration_time_unit_seconds = {{integration_time_unit_seconds if integration_time_unit_seconds is defined and integration_time_unit_seconds != "" else 1.0}}
+{% if max_gap_seconds is defined and max_gap_seconds != "" %}
+max_gap_seconds = {{max_gap_seconds}}
+{% endif %}
+{% else %}
+smoothing_factor = {{smoothing_factor if smoothing_factor is defined and smoothing_factor != "" else 1.0}}
+debounce_seconds = {{debounce_seconds if debounce_seconds is defined and debounce_seconds != "" else 0.0}}
+{% endif %}
+retransmit_interval_seconds = {{retransmit_interval_seconds if retransmit_interval_seconds is defined and retransmit_interval_seconds != "" else 3600.0}}
+# Comparison is hard-coded to running when parameter (or accumulated integral) is greater than or equal to threshold
 
 [output]
 target = "{{machine_uuid}}"
